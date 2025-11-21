@@ -20,6 +20,7 @@ import modelo.Bloque;
 /**
  *
  * @author Diego A. Vivolo
+ * Gabriel Orozco
  */
 
 public class SO implements Runnable {
