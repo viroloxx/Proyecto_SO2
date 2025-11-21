@@ -1,22 +1,28 @@
-C:\Users\Diego A. Vivolo\OneDrive\Documents\NetBeansProjects\SO_2\src\main\java\estructura_datos\Cola.java
-C:\Users\Diego A. Vivolo\OneDrive\Documents\NetBeansProjects\SO_2\src\main\java\estructura_datos\ListaEnlazada.java
-C:\Users\Diego A. Vivolo\OneDrive\Documents\NetBeansProjects\SO_2\src\main\java\estructura_datos\Nodo.java
-C:\Users\Diego A. Vivolo\OneDrive\Documents\NetBeansProjects\SO_2\src\main\java\FS\SistemaArchivos.java
-C:\Users\Diego A. Vivolo\OneDrive\Documents\NetBeansProjects\SO_2\src\main\java\GUI\Ventana_Principal.java
-C:\Users\Diego A. Vivolo\OneDrive\Documents\NetBeansProjects\SO_2\src\main\java\main\SO_2.java
-C:\Users\Diego A. Vivolo\OneDrive\Documents\NetBeansProjects\SO_2\src\main\java\modelo\Archivo.java
-C:\Users\Diego A. Vivolo\OneDrive\Documents\NetBeansProjects\SO_2\src\main\java\modelo\Bloque.java
-C:\Users\Diego A. Vivolo\OneDrive\Documents\NetBeansProjects\SO_2\src\main\java\modelo\Directorio.java
-C:\Users\Diego A. Vivolo\OneDrive\Documents\NetBeansProjects\SO_2\src\main\java\modelo\EstadoProceso.java
-C:\Users\Diego A. Vivolo\OneDrive\Documents\NetBeansProjects\SO_2\src\main\java\modelo\PCB.java
-C:\Users\Diego A. Vivolo\OneDrive\Documents\NetBeansProjects\SO_2\src\main\java\modelo\PlantillaProceso.java
-C:\Users\Diego A. Vivolo\OneDrive\Documents\NetBeansProjects\SO_2\src\main\java\modelo\SD.java
-C:\Users\Diego A. Vivolo\OneDrive\Documents\NetBeansProjects\SO_2\src\main\java\modelo\SolicitudIO.java
-C:\Users\Diego A. Vivolo\OneDrive\Documents\NetBeansProjects\SO_2\src\main\java\modelo\TipoOperacion.java
-C:\Users\Diego A. Vivolo\OneDrive\Documents\NetBeansProjects\SO_2\src\main\java\planificacion\FCFS.java
-C:\Users\Diego A. Vivolo\OneDrive\Documents\NetBeansProjects\SO_2\src\main\java\planificacion\MultilevelFeedbackQueue.java
-C:\Users\Diego A. Vivolo\OneDrive\Documents\NetBeansProjects\SO_2\src\main\java\planificacion\MultilevelQueue.java
-C:\Users\Diego A. Vivolo\OneDrive\Documents\NetBeansProjects\SO_2\src\main\java\planificacion\Planificador.java
-C:\Users\Diego A. Vivolo\OneDrive\Documents\NetBeansProjects\SO_2\src\main\java\planificacion\Prioridad.java
-C:\Users\Diego A. Vivolo\OneDrive\Documents\NetBeansProjects\SO_2\src\main\java\planificacion\RoundRobin.java
-C:\Users\Diego A. Vivolo\OneDrive\Documents\NetBeansProjects\SO_2\src\main\java\planificacion\SJF.java
+/Users/gabrielorozco/Desktop/Proyecto SO2/Proyecto_SO2/src/main/java/modelo/SD.java
+/Users/gabrielorozco/Desktop/Proyecto SO2/Proyecto_SO2/src/main/java/cpu/CPU.java
+/Users/gabrielorozco/Desktop/Proyecto SO2/Proyecto_SO2/src/main/java/FS/EstadoSistema.java
+/Users/gabrielorozco/Desktop/Proyecto SO2/Proyecto_SO2/src/main/java/planificacion/SCAN.java
+/Users/gabrielorozco/Desktop/Proyecto SO2/Proyecto_SO2/src/main/java/estructura_datos/Nodo.java
+/Users/gabrielorozco/Desktop/Proyecto SO2/Proyecto_SO2/src/main/java/planificacion/SSTF.java
+/Users/gabrielorozco/Desktop/Proyecto SO2/Proyecto_SO2/src/main/java/modelo/PCB.java
+/Users/gabrielorozco/Desktop/Proyecto SO2/Proyecto_SO2/src/main/java/modelo/SolicitudIO.java
+/Users/gabrielorozco/Desktop/Proyecto SO2/Proyecto_SO2/src/main/java/Persistencia/PersistenciaCSV.java
+/Users/gabrielorozco/Desktop/Proyecto SO2/Proyecto_SO2/src/main/java/Persistencia/ConfiguracionJsSON.java
+/Users/gabrielorozco/Desktop/Proyecto SO2/Proyecto_SO2/src/main/java/planificacion/CSCAN.java
+/Users/gabrielorozco/Desktop/Proyecto SO2/Proyecto_SO2/src/main/java/estructura_datos/ListaEnlazada.java
+/Users/gabrielorozco/Desktop/Proyecto SO2/Proyecto_SO2/src/main/java/cpu/Reloj.java
+/Users/gabrielorozco/Desktop/Proyecto SO2/Proyecto_SO2/src/main/java/modelo/EstadoProceso.java
+/Users/gabrielorozco/Desktop/Proyecto SO2/Proyecto_SO2/src/main/java/modelo/Directorio.java
+/Users/gabrielorozco/Desktop/Proyecto SO2/Proyecto_SO2/src/main/java/modelo/TipoOperacion.java
+/Users/gabrielorozco/Desktop/Proyecto SO2/Proyecto_SO2/src/main/java/FS/SistemaArchivos.java
+/Users/gabrielorozco/Desktop/Proyecto SO2/Proyecto_SO2/src/main/java/Persistencia/PersistenciaJSON.java
+/Users/gabrielorozco/Desktop/Proyecto SO2/Proyecto_SO2/src/main/java/modelo/Archivo.java
+/Users/gabrielorozco/Desktop/Proyecto SO2/Proyecto_SO2/src/main/java/estructura_datos/Cola.java
+/Users/gabrielorozco/Desktop/Proyecto SO2/Proyecto_SO2/src/main/java/modelo/TipoProceso.java
+/Users/gabrielorozco/Desktop/Proyecto SO2/Proyecto_SO2/src/main/java/GUI/Ventana_Principal.java
+/Users/gabrielorozco/Desktop/Proyecto SO2/Proyecto_SO2/src/main/java/FS/BufferCache.java
+/Users/gabrielorozco/Desktop/Proyecto SO2/Proyecto_SO2/src/main/java/planificacion/FIFO.java
+/Users/gabrielorozco/Desktop/Proyecto SO2/Proyecto_SO2/src/main/java/modelo/Bloque.java
+/Users/gabrielorozco/Desktop/Proyecto SO2/Proyecto_SO2/src/main/java/sistema/SO.java
+/Users/gabrielorozco/Desktop/Proyecto SO2/Proyecto_SO2/src/main/java/planificacion/Planificador.java
+/Users/gabrielorozco/Desktop/Proyecto SO2/Proyecto_SO2/src/main/java/modelo/PlantillaProceso.java

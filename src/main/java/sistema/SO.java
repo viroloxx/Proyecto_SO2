@@ -43,6 +43,7 @@ public class SO implements Runnable {
     private boolean ejecutando;
     private Thread hiloSimulacion;
     private StringBuilder logEventos;
+    private int contadorProcesos;
 
     public SO(int tamanoDisco, int duracionCicloMs) {
         this.reloj = new Reloj(duracionCicloMs);
@@ -66,6 +67,59 @@ public class SO implements Runnable {
         
         this.logEventos = new StringBuilder();
         this.ejecutando = false;
+        this.contadorProcesos = 0;
+    }
+    
+    // Método para crear archivo desde la GUI
+    public void crearArchivoDesdeGUI(String nombre, int tamanoEnBloques) {
+        int bloqueObjetivo = (int)(Math.random() * disco.getTamanoTotal());
+        SolicitudIO solicitud = new SolicitudIO(TipoOperacion.CREAR_ARCHIVO, nombre, tamanoEnBloques, bloqueObjetivo);
+        PCB proceso = new PCB(++contadorProcesos, "Proceso-" + contadorProcesos, reloj.getCicloActual(), solicitud);
+        recibirSolicitud(proceso);
+    }
+    
+    // Método para crear directorio desde la GUI
+    public void crearDirectorioDesdeGUI(String nombre) {
+        int bloqueObjetivo = 0;
+        SolicitudIO solicitud = new SolicitudIO(TipoOperacion.CREAR_DIRECTORIO, nombre, bloqueObjetivo);
+        PCB proceso = new PCB(++contadorProcesos, "Proceso-" + contadorProcesos, reloj.getCicloActual(), solicitud);
+        recibirSolicitud(proceso);
+    }
+    
+    // Método para eliminar desde la GUI
+    public void eliminarDesdeGUI(String nombre, boolean esArchivo) {
+        Object hijo = directorioActual.buscarHijo(nombre);
+        int bloqueObjetivo = 0;
+        if (esArchivo && hijo instanceof Archivo) {
+            bloqueObjetivo = ((Archivo) hijo).getDireccionPrimerBloque();
+        }
+        TipoOperacion tipo = esArchivo ? TipoOperacion.ELIMINAR_ARCHIVO : TipoOperacion.ELIMINAR_DIRECTORIO;
+        SolicitudIO solicitud = new SolicitudIO(tipo, nombre, bloqueObjetivo);
+        PCB proceso = new PCB(++contadorProcesos, "Proceso-" + contadorProcesos, reloj.getCicloActual(), solicitud);
+        recibirSolicitud(proceso);
+    }
+    
+    // Método para renombrar desde la GUI
+    public void renombrarDesdeGUI(String nombreActual, String nuevoNombre) {
+        Object hijo = directorioActual.buscarHijo(nombreActual);
+        int bloqueObjetivo = 0;
+        if (hijo instanceof Archivo) {
+            bloqueObjetivo = ((Archivo) hijo).getDireccionPrimerBloque();
+        }
+        SolicitudIO solicitud = new SolicitudIO(TipoOperacion.ACTUALIZAR_ARCHIVO, nombreActual, nuevoNombre, bloqueObjetivo);
+        PCB proceso = new PCB(++contadorProcesos, "Proceso-" + contadorProcesos, reloj.getCicloActual(), solicitud);
+        recibirSolicitud(proceso);
+    }
+    
+    // Método para leer archivo desde la GUI
+    public void leerArchivoDesdeGUI(String nombre) {
+        Object hijo = directorioActual.buscarHijo(nombre);
+        if (hijo instanceof Archivo) {
+            int bloqueObjetivo = ((Archivo) hijo).getDireccionPrimerBloque();
+            SolicitudIO solicitud = new SolicitudIO(TipoOperacion.LEER_ARCHIVO, nombre, bloqueObjetivo);
+            PCB proceso = new PCB(++contadorProcesos, "Proceso-" + contadorProcesos, reloj.getCicloActual(), solicitud);
+            recibirSolicitud(proceso);
+        }
     }
 
     public void recibirSolicitud(PCB nuevoProceso) {
@@ -244,4 +298,22 @@ public class SO implements Runnable {
     public Cola<SolicitudIO> getColaSolicitudes() { return colaSolicitudesIO; }
     public String getLog() { return logEventos.toString(); }
     public int getCabezaDisco() { return cabezaDiscoActual; }
+    public Reloj getReloj() { return reloj; }
+    public CPU getCpu() { return cpu; }
+    public Cola<PCB> getColaListos() { return colaListos; }
+    public Cola<PCB> getColaBloqueados() { return colaBloqueados; }
+    public Cola<PCB> getColaTerminados() { return colaTerminados; }
+    public Planificador getPlanificadorDisco() { return planificadorDisco; }
+    public Directorio getDirectorioActual() { return directorioActual; }
+    public BufferCache getCacheDisco() { return cacheDisco; }
+    
+    public void setDirectorioActual(Directorio dir) { this.directorioActual = dir; }
+    
+    public void limpiarLog() { logEventos = new StringBuilder(); }
+    
+    public boolean isEjecutando() { return ejecutando; }
+    
+    public void pausar() { reloj.pausar(); }
+    
+    public void reanudar() { reloj.reanudar(); }
 }

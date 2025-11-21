@@ -15,6 +15,11 @@ public class SistemaArchivos {
     private Directorio directorioRaiz;
     private SD disco;
 
+    public SistemaArchivos(SD disco) {
+        this.disco = disco;
+        this.directorioRaiz = new Directorio("raiz");
+    }
+
     public Directorio getDirectorioRaiz() {
         return this.directorioRaiz;
     }

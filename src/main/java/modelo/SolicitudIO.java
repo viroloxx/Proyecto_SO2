@@ -1,36 +1,23 @@
-
 package modelo;
 
 /**
  *
  * @author Diego A. Vivolo
  */
-
-
-public enum TipoOperacion {
-    CREAR_ARCHIVO,
-    LEER_ARCHIVO,
-    ACTUALIZAR_ARCHIVO,
-    ELIMINAR_ARCHIVO,
-    CREAR_DIRECTORIO,
-    ELIMINAR_DIRECTORIO
-}
-
-public class SolicitudIO {private final TipoOperacion tipo;
+public class SolicitudIO {
+    private final TipoOperacion tipo;
     private final String nombreArchivo;
-    private final int tamanoEnBloques; 
+    private final int tamanoEnBloques;
     private final String nuevoNombre;
-    private final int bloqueObjetivo; 
-
+    private final int bloqueObjetivo;
 
     public SolicitudIO(TipoOperacion tipo, String nombreArchivo, int tamanoEnBloques, int bloqueObjetivo) {
         this.tipo = tipo;
         this.nombreArchivo = nombreArchivo;
         this.tamanoEnBloques = tamanoEnBloques;
-        this.bloqueObjetivo = bloqueObjetivo; 
+        this.bloqueObjetivo = bloqueObjetivo;
         this.nuevoNombre = null;
     }
-    
 
     public SolicitudIO(TipoOperacion tipo, String nombreArchivo, int bloqueObjetivo) {
         this.tipo = tipo;
@@ -39,7 +26,6 @@ public class SolicitudIO {private final TipoOperacion tipo;
         this.bloqueObjetivo = bloqueObjetivo;
         this.nuevoNombre = null;
     }
-    
 
     public SolicitudIO(TipoOperacion tipo, String nombreArchivo, String nuevoNombre, int bloqueObjetivo) {
         this.tipo = tipo;
@@ -49,18 +35,14 @@ public class SolicitudIO {private final TipoOperacion tipo;
         this.bloqueObjetivo = bloqueObjetivo;
     }
 
-    // --- Getters ---
     public TipoOperacion getTipo() { return tipo; }
     public String getNombreArchivo() { return nombreArchivo; }
     public int getTamanoEnBloques() { return tamanoEnBloques; }
     public String getNuevoNombre() { return nuevoNombre; }
-    
-    // *** NUEVO GETTER ***
     public int getBloqueObjetivo() { return bloqueObjetivo; }
-    
+
     @Override
     public String toString() {
-
         String base;
         switch(tipo) {
             case CREAR_ARCHIVO:
@@ -81,4 +63,3 @@ public class SolicitudIO {private final TipoOperacion tipo;
         return String.format("%s [Bloque: %d]", base, bloqueObjetivo);
     }
 }
-    

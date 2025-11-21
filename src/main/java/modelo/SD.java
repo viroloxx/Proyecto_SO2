@@ -73,7 +73,7 @@ public class SD {
 
             int indiceSiguiente = bloque.getSiguienteBloque();
             
-            bloque.liberar();
+            bloque.Liberar();
             this.bloquesLibres++;
 
             indiceActual = indiceSiguiente;

@@ -2,20 +2,14 @@ package Persistencia;
 
 import modelo.PlantillaProceso;
 
-
+/**
+ * @author Diego A. Vivolo
+ */
 class ConfiguracionJSON {
-    private ConfiguracionSistema configuracionSistema;
+    // TODO: Implementar ConfiguracionSistema si es necesario
     private PlantillaProceso[] procesos;
 
     public ConfiguracionJSON() {
-    }
-
-    public ConfiguracionSistema getConfiguracionSistema() {
-        return configuracionSistema;
-    }
-
-    public void setConfiguracionSistema(ConfiguracionSistema configuracionSistema) {
-        this.configuracionSistema = configuracionSistema;
     }
 
     public PlantillaProceso[] getProcesos() {
