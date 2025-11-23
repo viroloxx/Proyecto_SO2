@@ -7,16 +7,26 @@ import FS.BufferCache;
 import estructura_datos.ListaEnlazada;
 import estructura_datos.Cola;
 import planificacion.*;
-
 import javax.swing.*;
 import javax.swing.tree.*;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
+import javax.swing.JFileChooser;
+import javax.swing.JMenuBar;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import Persistencia.PersistenciaJSON; 
+import Persistencia.PersistenciaCSV;
+
+
+
 
 /**
- * Ventana Principal del Simulador de Sistema de Archivos
- * @author Diego A. Vivolo / Gabriel (completado)
+ * 
+ * @author Diego A. Vivolo / Gabriel 
  */
 public class Ventana_Principal extends javax.swing.JFrame {
 
@@ -24,7 +34,7 @@ public class Ventana_Principal extends javax.swing.JFrame {
     private boolean modoAdministrador = true;
     private Timer timerActualizacion;
     
-    // Componentes de la GUI
+
     private JTree arbolArchivos;
     private DefaultTreeModel modeloArbol;
     private JPanel panelDisco;
@@ -49,62 +59,64 @@ public class Ventana_Principal extends javax.swing.JFrame {
     private JButton btnRenombrar;
     private JButton btnLeer;
     private JButton btnPausar;
-    
-    // Constantes
+    private JButton btnEstadisticas;
+
     private static final int NUM_BLOQUES = 100;
     private static final int CICLO_MS = 500;
 
     public Ventana_Principal() {
         initComponents();
         setTitle("Simulador de Sistema de Archivos - SO 2425-2");
-        setSize(1200, 850);
+        setSize(1300, 950);
         setLocationRelativeTo(null);
         
-        // Inicializar el simulador
+        setJMenuBar(crearBarraMenu());
+        
+
         simulador = new SO(NUM_BLOQUES, CICLO_MS);
         
-        // Iniciar simulación
+
         simulador.iniciar();
         
-        // Iniciar timer de actualización de GUI
+
         iniciarTimerGUI();
     }
     
     private void initComponents() {
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         
-        // Panel principal con BorderLayout
+
         JPanel panelPrincipal = new JPanel(new BorderLayout(5, 5));
         panelPrincipal.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
-        // ========== PANEL SUPERIOR (Controles) ==========
+
         JPanel panelControles = crearPanelControles();
         panelPrincipal.add(panelControles, BorderLayout.NORTH);
         
-        // ========== PANEL CENTRAL (JTree + Pestañas) ==========
+
         JSplitPane splitCentral = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         splitCentral.setDividerLocation(200);
         
-        // Panel izquierdo: JTree
+
         JPanel panelArbol = crearPanelArbol();
         splitCentral.setLeftComponent(panelArbol);
         
-        // Panel derecho: Pestañas
+
         JTabbedPane pestanas = crearPestanas();
         splitCentral.setRightComponent(pestanas);
         
         panelPrincipal.add(splitCentral, BorderLayout.CENTER);
         
-        // ========== PANEL INFERIOR (Log + Procesos) ==========
+
         JSplitPane splitInferior = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         splitInferior.setDividerLocation(600);
         splitInferior.setPreferredSize(new Dimension(0, 200));
         
-        // Log de eventos
+
         JPanel panelLog = crearPanelLog();
         splitInferior.setLeftComponent(panelLog);
         
-        // Cola de procesos
+
         JPanel panelProcesos = crearPanelProcesos();
         splitInferior.setRightComponent(panelProcesos);
         
@@ -134,15 +146,14 @@ public class Ventana_Principal extends javax.swing.JFrame {
         panel.add(panelModo);
         panel.add(new JSeparator(SwingConstants.VERTICAL));
         
-        // Selector de planificador
+
         panel.add(new JLabel("Planificador:"));
         comboPlanificador = new JComboBox<>(new String[]{"FIFO", "SSTF", "SCAN", "C-SCAN"});
         comboPlanificador.addActionListener(e -> cambiarPlanificador());
         panel.add(comboPlanificador);
         
         panel.add(new JSeparator(SwingConstants.VERTICAL));
-        
-        // Botones CRUD
+
         btnCrearArchivo = new JButton("Crear Archivo");
         btnCrearArchivo.addActionListener(e -> crearArchivo());
         panel.add(btnCrearArchivo);
@@ -165,12 +176,17 @@ public class Ventana_Principal extends javax.swing.JFrame {
         
         panel.add(new JSeparator(SwingConstants.VERTICAL));
         
-        // Botón pausar/reanudar
+        btnEstadisticas = new JButton("Estadísticas");
+        btnEstadisticas.addActionListener(e -> mostrarEstadisticas());
+        panel.add(btnEstadisticas); 
+    
+        panel.add(new JSeparator(SwingConstants.VERTICAL));
+        
         btnPausar = new JButton("Pausar");
         btnPausar.addActionListener(e -> togglePausa());
         panel.add(btnPausar);
         
-        // Labels de estado
+
         labelCiclo = new JLabel("Ciclo: 0");
         panel.add(labelCiclo);
         
@@ -180,23 +196,159 @@ public class Ventana_Principal extends javax.swing.JFrame {
         return panel;
     }
     
+    private JMenuBar crearBarraMenu() {
+        JMenuBar menuBar = new JMenuBar();
+
+
+        JMenu menuArchivo = new JMenu("Archivo");
+
+
+        JMenuItem itemGuardar = new JMenuItem("Guardar Estado del Sistema (.json)");
+        itemGuardar.addActionListener(e -> accionGuardarEstado());
+
+
+        JMenuItem itemCargar = new JMenuItem("Cargar Estado del Sistema (.json)");
+        itemCargar.addActionListener(e -> accionCargarEstado());
+
+        menuArchivo.add(itemGuardar);
+        menuArchivo.add(itemCargar);
+        menuArchivo.addSeparator();
+
+        JMenuItem itemSalir = new JMenuItem("Salir");
+        itemSalir.addActionListener(e -> System.exit(0));
+        menuArchivo.add(itemSalir);
+
+
+        JMenu menuReportes = new JMenu("Reportes");
+
+
+        JMenuItem itemResumen = new JMenuItem("Exportar Resumen del Sistema (.txt)");
+        itemResumen.addActionListener(e -> accionExportarResumen());
+
+
+        JMenuItem itemEstadisticas = new JMenuItem("Exportar Estadísticas Procesos (.csv)");
+        itemEstadisticas.addActionListener(e -> accionExportarCSV());
+
+        menuReportes.add(itemResumen);
+        menuReportes.add(itemEstadisticas);
+
+
+        menuBar.add(menuArchivo);
+        menuBar.add(menuReportes);
+
+        return menuBar;
+        }
+    
+    private void accionGuardarEstado() {
+    JFileChooser fc = new JFileChooser();
+    fc.setDialogTitle("Guardar estado del sistema");
+    fc.setFileFilter(new FileNameExtensionFilter("Archivos JSON", "json"));
+    
+    if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+        File archivo = fc.getSelectedFile();
+        String ruta = archivo.getAbsolutePath();
+        if (!ruta.toLowerCase().endsWith(".json")) {
+            ruta += ".json";
+        }
+        
+
+        PersistenciaJSON.guardarEstado(
+            simulador.getSistemaArchivos(), 
+            simulador.getDisco(), 
+            ruta
+        );
+        JOptionPane.showMessageDialog(this, "Estado guardado exitosamente.");
+    }
+}
+
+    private void accionCargarEstado() {
+        JFileChooser fc = new JFileChooser();
+        fc.setDialogTitle("Cargar estado del sistema");
+        fc.setFileFilter(new FileNameExtensionFilter("Archivos JSON", "json"));
+
+        if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            File archivo = fc.getSelectedFile();
+
+
+            PersistenciaJSON.cargarEstado(
+                simulador.getSistemaArchivos(), 
+                simulador.getDisco(), 
+                archivo.getAbsolutePath()
+            );
+
+
+            actualizarArbol();
+            panelDisco.repaint();
+            actualizarTablaAsignacion();
+            JOptionPane.showMessageDialog(this, "Estado cargado (Revisar consola para detalles).");
+        }
+    }
+
+    private void accionExportarResumen() {
+        JFileChooser fc = new JFileChooser();
+        fc.setDialogTitle("Exportar Resumen");
+        fc.setFileFilter(new FileNameExtensionFilter("Archivos de Texto", "txt"));
+
+        if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+            File archivo = fc.getSelectedFile();
+            String ruta = archivo.getAbsolutePath();
+            if (!ruta.toLowerCase().endsWith(".txt")) {
+                ruta += ".txt";
+            }
+
+            PersistenciaJSON.exportarResumen(
+                simulador.getSistemaArchivos(),
+                simulador.getDisco(),
+                ruta
+            );
+            JOptionPane.showMessageDialog(this, "Resumen exportado.");
+        }
+    }
+
+    private void accionExportarCSV() {
+
+
+        JFileChooser fc = new JFileChooser();
+        fc.setDialogTitle("Exportar Estadísticas");
+        fc.setFileFilter(new FileNameExtensionFilter("Archivos CSV", "csv"));
+
+        if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+            File archivo = fc.getSelectedFile();
+            String ruta = archivo.getAbsolutePath();
+            if (!ruta.toLowerCase().endsWith(".csv")) {
+                ruta += ".csv";
+            }
+
+            try {
+
+                 PersistenciaJSON.guardarResultadosProcesos(simulador.getColaTerminados(), ruta);
+
+                JOptionPane.showMessageDialog(this, "Estadísticas exportadas.");
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error al exportar: " + ex.getMessage());
+            }
+        }
+    }   
+
+    
+    
     private JPanel crearPanelArbol() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(BorderFactory.createTitledBorder("Sistema de Archivos"));
         
-        // Crear el modelo del árbol
+
         DefaultMutableTreeNode raiz = new DefaultMutableTreeNode("raiz");
         modeloArbol = new DefaultTreeModel(raiz);
         arbolArchivos = new JTree(modeloArbol);
         arbolArchivos.setRootVisible(true);
         arbolArchivos.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         
-        // Listener para selección
+
         arbolArchivos.addTreeSelectionListener(e -> {
             TreePath path = arbolArchivos.getSelectionPath();
             if (path != null) {
                 DefaultMutableTreeNode nodo = (DefaultMutableTreeNode) path.getLastPathComponent();
-                // Se puede usar para mostrar info adicional
+ 
             }
         });
         
@@ -209,7 +361,7 @@ public class Ventana_Principal extends javax.swing.JFrame {
     private JTabbedPane crearPestanas() {
         JTabbedPane pestanas = new JTabbedPane();
         
-        // Pestaña 1: Simulación de Disco
+
         JPanel panelSimDisco = new JPanel(new BorderLayout());
         panelSimDisco.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         
@@ -231,7 +383,7 @@ public class Ventana_Principal extends javax.swing.JFrame {
         
         pestanas.addTab("Simulación de Disco", panelSimDisco);
         
-        // Pestaña 2: Tabla de Asignación
+
         JPanel panelTabla = new JPanel(new BorderLayout());
         String[] columnas = {"Archivo", "Bloques", "Primer Bloque", "Color", "Propietario"};
         modeloTabla = new DefaultTableModel(columnas, 0) {
@@ -243,7 +395,7 @@ public class Ventana_Principal extends javax.swing.JFrame {
         tablaAsignacion = new JTable(modeloTabla);
         tablaAsignacion.setRowHeight(25);
         
-        // Renderer para la columna de color
+
         tablaAsignacion.getColumnModel().getColumn(3).setCellRenderer(new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value,
@@ -261,7 +413,7 @@ public class Ventana_Principal extends javax.swing.JFrame {
         panelTabla.add(scrollTabla, BorderLayout.CENTER);
         pestanas.addTab("Tabla de Asignación", panelTabla);
         
-        // Pestaña 3: Cache/Buffer
+
         JPanel panelCache = new JPanel(new BorderLayout());
         panelCache.setBorder(BorderFactory.createTitledBorder("Buffer Cache (FIFO)"));
         modeloListaCache = new DefaultListModel<>();
@@ -310,7 +462,7 @@ public class Ventana_Principal extends javax.swing.JFrame {
         return panel;
     }
     
-    // ========== MÉTODOS DE DIBUJO ==========
+
     
     private void dibujarDisco(Graphics g) {
         if (simulador == null) return;
@@ -319,14 +471,14 @@ public class Ventana_Principal extends javax.swing.JFrame {
         Bloque[] bloques = disco.getBloques();
         int total = bloques.length;
         
-        // Configuración de dibujo
+
         int cols = 10;
         int filas = (int) Math.ceil((double) total / cols);
         int tamBloque = 40;
         int espaciado = 5;
         int margen = 20;
         
-        // Ajustar tamaño del panel
+
         int anchoNecesario = cols * (tamBloque + espaciado) + margen * 2;
         int altoNecesario = filas * (tamBloque + espaciado) + margen * 2;
         panelDisco.setPreferredSize(new Dimension(anchoNecesario, altoNecesario));
@@ -334,7 +486,7 @@ public class Ventana_Principal extends javax.swing.JFrame {
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         
-        // Obtener colores de archivos
+
         java.util.Map<String, Color> coloresArchivos = obtenerColoresArchivos();
         int cabeza = simulador.getCabezaDisco();
         
@@ -346,7 +498,7 @@ public class Ventana_Principal extends javax.swing.JFrame {
             
             Bloque bloque = bloques[i];
             
-            // Determinar color
+
             Color colorBloque;
             if (bloque.isEstaLibre()) {
                 colorBloque = new Color(200, 200, 200); // Gris para libre
@@ -355,7 +507,7 @@ public class Ventana_Principal extends javax.swing.JFrame {
                 colorBloque = coloresArchivos.getOrDefault(propietario, new Color(100, 149, 237));
             }
             
-            // Dibujar bloque
+
             g2d.setColor(colorBloque);
             g2d.fillRoundRect(x, y, tamBloque, tamBloque, 8, 8);
             
@@ -363,7 +515,7 @@ public class Ventana_Principal extends javax.swing.JFrame {
             g2d.setColor(Color.DARK_GRAY);
             g2d.drawRoundRect(x, y, tamBloque, tamBloque, 8, 8);
             
-            // Resaltar cabeza del disco
+
             if (i == cabeza) {
                 g2d.setColor(Color.RED);
                 g2d.setStroke(new BasicStroke(3));
@@ -371,7 +523,7 @@ public class Ventana_Principal extends javax.swing.JFrame {
                 g2d.setStroke(new BasicStroke(1));
             }
             
-            // Número del bloque
+
             g2d.setColor(bloque.isEstaLibre() ? Color.DARK_GRAY : Color.WHITE);
             g2d.setFont(new Font("Arial", Font.BOLD, 10));
             String num = String.valueOf(i);
@@ -380,7 +532,7 @@ public class Ventana_Principal extends javax.swing.JFrame {
             int yTexto = y + (tamBloque + fm.getAscent()) / 2 - 2;
             g2d.drawString(num, xTexto, yTexto);
             
-            // Mostrar siguiente bloque si está encadenado
+
             if (!bloque.isEstaLibre() && bloque.getSiguienteBloque() != -1) {
                 g2d.setFont(new Font("Arial", Font.PLAIN, 8));
                 g2d.setColor(Color.WHITE);
@@ -409,7 +561,7 @@ public class Ventana_Principal extends javax.swing.JFrame {
         }
     }
     
-    // ========== MÉTODOS DE ACTUALIZACIÓN ==========
+
     
     private void iniciarTimerGUI() {
         timerActualizacion = new Timer(200, e -> actualizarGUI());
@@ -420,29 +572,29 @@ public class Ventana_Principal extends javax.swing.JFrame {
         if (simulador == null) return;
         
         SwingUtilities.invokeLater(() -> {
-            // Actualizar árbol
+
             actualizarArbol();
             
-            // Actualizar disco
+
             panelDisco.repaint();
             
-            // Actualizar tabla de asignación
+
             actualizarTablaAsignacion();
             
-            // Actualizar log
+
             String log = simulador.getLog();
             if (!log.equals(areaLog.getText())) {
                 areaLog.setText(log);
                 areaLog.setCaretPosition(areaLog.getDocument().getLength());
             }
             
-            // Actualizar cola de procesos
+
             actualizarColaProcesos();
             
-            // Actualizar cache
+
             actualizarCache();
             
-            // Actualizar labels
+
             labelCiclo.setText("Ciclo: " + simulador.getReloj().getCicloActual());
             labelCabeza.setText("Cabeza: " + simulador.getCabezaDisco());
             labelEstadoDisco.setText("Bloques libres: " + simulador.getDisco().getBloquesLibres() 
@@ -511,26 +663,26 @@ public class Ventana_Principal extends javax.swing.JFrame {
     private void actualizarColaProcesos() {
         modeloListaProcesos.clear();
         
-        // Procesos listos
+ 
         modeloListaProcesos.addElement("=== LISTOS ===");
         for (PCB p : simulador.getColaListos()) {
             modeloListaProcesos.addElement("  " + p.getNombre() + " - " + p.getEstado());
         }
         
-        // Proceso en ejecución
+
         modeloListaProcesos.addElement("=== EN CPU ===");
         PCB enCpu = simulador.getCpu().getProcesoActual();
         if (enCpu != null) {
             modeloListaProcesos.addElement("  " + enCpu.getNombre() + " - EJECUCION");
         }
         
-        // Procesos bloqueados
+
         modeloListaProcesos.addElement("=== BLOQUEADOS ===");
         for (PCB p : simulador.getColaBloqueados()) {
             modeloListaProcesos.addElement("  " + p.getNombre() + " - " + p.getEstado());
         }
         
-        // Cola de I/O
+
         modeloListaProcesos.addElement("=== COLA I/O ===");
         for (SolicitudIO s : simulador.getColaSolicitudes()) {
             modeloListaProcesos.addElement("  " + s.toString());
@@ -553,7 +705,6 @@ public class Ventana_Principal extends javax.swing.JFrame {
         }
     }
     
-    // ========== MÉTODOS DE ACCIÓN ==========
     
     private void cambiarModo(boolean esAdmin) {
         modoAdministrador = esAdmin;
@@ -561,7 +712,10 @@ public class Ventana_Principal extends javax.swing.JFrame {
         btnCrearDirectorio.setEnabled(esAdmin);
         btnEliminar.setEnabled(esAdmin);
         btnRenombrar.setEnabled(esAdmin);
-        // Leer siempre está habilitado
+        if (btnEstadisticas != null) {
+            btnEstadisticas.setEnabled(esAdmin);
+        }
+
     }
     
     private void cambiarPlanificador() {
@@ -623,6 +777,19 @@ public class Ventana_Principal extends javax.swing.JFrame {
         }
     }
     
+    private void mostrarEstadisticas() {
+        if (!modoAdministrador) return;
+
+        String reporte = simulador.obtenerEstadisticasGlobales();
+
+        JTextArea areaStats = new JTextArea(reporte);
+        areaStats.setEditable(false);
+        areaStats.setFont(new Font("Monospaced", Font.PLAIN, 12));
+
+        JOptionPane.showMessageDialog(this, new JScrollPane(areaStats), 
+                "Reporte del Sistema (Admin)", JOptionPane.INFORMATION_MESSAGE);
+    }
+    
     private void leerArchivo() {
         TreePath path = arbolArchivos.getSelectionPath();
         if (path == null) {
@@ -630,19 +797,33 @@ public class Ventana_Principal extends javax.swing.JFrame {
                 "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
+
         DefaultMutableTreeNode nodo = (DefaultMutableTreeNode) path.getLastPathComponent();
         Object obj = nodo.getUserObject();
-        
+
         if (obj instanceof Archivo) {
             Archivo arch = (Archivo) obj;
+
+            if (!modoAdministrador) {
+                String propietario = arch.getPropietario();
+
+                boolean esPropio = "Usuario".equals(propietario);
+                boolean esPublico = propietario == null || "Publico".equalsIgnoreCase(propietario);
+
+                if (!esPropio && !esPublico) {
+                    JOptionPane.showMessageDialog(this, 
+                        "ACCESO DENEGADO:\nEn Modo Usuario solo puede leer archivos propios o públicos.\nPropietario del archivo: " + propietario, 
+                        "Violación de Permisos", JOptionPane.WARNING_MESSAGE);
+                    return; 
+                }
+            }
+
             simulador.leerArchivoDesdeGUI(arch.getNombre());
         } else {
             JOptionPane.showMessageDialog(this, "Solo se pueden leer archivos", 
                 "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-    
     private void renombrar() {
         if (!modoAdministrador) {
             JOptionPane.showMessageDialog(this, "Operacion no permitida en modo Usuario", 
@@ -733,7 +914,7 @@ public class Ventana_Principal extends javax.swing.JFrame {
                 }
             }
         } catch (Exception e) {
-            // Usar look and feel por defecto
+
         }
         
         java.awt.EventQueue.invokeLater(() -> {
