@@ -80,6 +80,6 @@ public class Archivo {
 
     @Override
     public String toString() {
-        return nombre; 
+    return this.nombre + " [" + this.tamanoEnBloques + " bloques]";
     }
 }
