@@ -10,9 +10,8 @@ public class Archivo {
     private int tamanoEnBloques;
     private int direccionPrimerBloque;
     private java.awt.Color color;
-    private String propietario; // Usuario que creó el archivo
-    
-    // Colores predefinidos para archivos
+    private String propietario; 
+
     private static final java.awt.Color[] COLORES = {
         new java.awt.Color(255, 99, 71),   // Tomate
         new java.awt.Color(60, 179, 113),  // Verde mar
