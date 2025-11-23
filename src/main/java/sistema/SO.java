@@ -285,6 +285,60 @@ public class SO implements Runnable {
         }
     }
     
+    public String obtenerEstadisticasGlobales() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== ESTADÍSTICAS DEL SISTEMA ===\n\n");
+
+
+        int totalProcesos = colaListos.obtenerTamanio() + colaBloqueados.obtenerTamanio() + 
+                            colaTerminados.obtenerTamanio() + (cpu.estaOcupada() ? 1 : 0);
+
+        long tiempoEsperaTotal = 0;
+        int terminadosCount = 0;
+
+
+        Object[] terminadosArr = colaTerminados.toArray();
+        for (Object obj : terminadosArr) {
+            if (obj instanceof PCB) {
+                tiempoEsperaTotal += ((PCB) obj).getTiempoEsperaTotal();
+                terminadosCount++;
+            }
+        }
+
+        double promedioEspera = (terminadosCount > 0) ? (double) tiempoEsperaTotal / terminadosCount : 0.0;
+
+        sb.append("Procesos Activos (Listos/Ejec/Bloq): ").append(totalProcesos - terminadosCount).append("\n");
+        sb.append("Procesos Terminados: ").append(terminadosCount).append("\n");
+        sb.append("Tiempo Promedio de Espera: ").append(String.format("%.2f ms", promedioEspera)).append("\n\n");
+
+
+        int bloquesLibres = disco.getBloquesLibres();
+        int totalBloques = disco.getTamanoTotal();
+        double porcentajeUso = 100.0 * (totalBloques - bloquesLibres) / totalBloques;
+
+
+        int fragmentosLibres = 0;
+        boolean enHueco = false;
+        Bloque[] bloques = disco.getBloques();
+
+        for (Bloque b : bloques) {
+            if (b.isEstaLibre()) {
+                if (!enHueco) {
+                    fragmentosLibres++;
+                    enHueco = true;
+                }
+            } else {
+                enHueco = false;
+            }
+        }
+
+        sb.append("Uso del Disco: ").append(String.format("%.1f%%", porcentajeUso)).append("\n");
+        sb.append("Bloques Libres: ").append(bloquesLibres).append("\n");
+        sb.append("Índice de Fragmentación (Zonas libres aisladas): ").append(fragmentosLibres).append("\n");
+
+        return sb.toString();
+    }
+    
     public void detener() {
         ejecutando = false;
     }
