@@ -478,7 +478,7 @@ public class Ventana_Principal extends javax.swing.JFrame {
         int espaciado = 5;
         int margen = 20;
         
-
+        // Ajustar tamaño del panel
         int anchoNecesario = cols * (tamBloque + espaciado) + margen * 2;
         int altoNecesario = filas * (tamBloque + espaciado) + margen * 2;
         panelDisco.setPreferredSize(new Dimension(anchoNecesario, altoNecesario));
@@ -603,16 +603,43 @@ public class Ventana_Principal extends javax.swing.JFrame {
     }
     
     private void actualizarArbol() {
-        DefaultMutableTreeNode raizNodo = (DefaultMutableTreeNode) modeloArbol.getRoot();
-        raizNodo.removeAllChildren();
-        
-        Directorio raizDir = simulador.getSistemaArchivos().getDirectorioRaiz();
-        construirArbolRecursivo(raizNodo, raizDir);
-        
-        modeloArbol.reload();
-        expandirTodoArbol();
-    }
-    
+
+            TreePath pathSeleccionado = arbolArchivos.getSelectionPath();
+            String rutaString = null;
+            if (pathSeleccionado != null) {
+          
+                rutaString = pathSeleccionado.toString(); 
+            }
+
+
+            DefaultMutableTreeNode raizNodo = (DefaultMutableTreeNode) modeloArbol.getRoot();
+            raizNodo.removeAllChildren();
+
+            Directorio raizDir = simulador.getSistemaArchivos().getDirectorioRaiz();
+            construirArbolRecursivo(raizNodo, raizDir);
+
+            modeloArbol.reload();
+            expandirTodoArbol(); 
+
+     
+            if (rutaString != null) {
+                restaurarSeleccion(rutaString);
+            }
+        }
+
+     
+        private void restaurarSeleccion(String rutaGuardada) {
+
+            for (int i = 0; i < arbolArchivos.getRowCount(); i++) {
+                TreePath path = arbolArchivos.getPathForRow(i);
+           
+                if (path.toString().equals(rutaGuardada)) {
+                    arbolArchivos.setSelectionPath(path);
+                    arbolArchivos.setSelectionRow(i);
+                    return;
+                }
+            }
+        }
     private void construirArbolRecursivo(DefaultMutableTreeNode nodoArbol, Directorio directorio) {
         for (Object hijo : directorio.getHijos()) {
             if (hijo instanceof Archivo) {
@@ -922,3 +949,4 @@ public class Ventana_Principal extends javax.swing.JFrame {
         });
     }
 }
+
