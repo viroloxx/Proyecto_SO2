@@ -3,7 +3,7 @@ package cpu;
 
 /**
  *
- * @author Diego A. Vivolo
+ * @author Diego A. Vivolo/gabriel
  */
 public class Reloj {
     private int cicloActual;
