@@ -40,8 +40,8 @@ public class PCB {
         this.tiempoRespuesta = -1;
         this.tiempoRetorno = -1;
 
-        // Cada proceso necesita 2-4 ciclos de CPU antes de generar I/O
-        this.ciclosRestantesCPU = 2 + (int)(Math.random() * 3); // 2 a 4 ciclos
+        // Cada proceso necesita 1-2 ciclos de CPU antes de generar I/O (reducido para acumular I/O más rápido)
+        this.ciclosRestantesCPU = 1 + (int)(Math.random() * 2); // 1 a 2 ciclos
     }
 
     public void incrementarTiempoEspera() {

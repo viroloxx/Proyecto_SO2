@@ -29,21 +29,26 @@ public class SO implements Runnable {
     private SistemaArchivos sistemaArchivos;
     private SD disco;
     private Directorio directorioActual;
+    private Directorio directorioTemporal;  // Para operaciones que requieren directorio específico
     private BufferCache cacheDisco;
-   
+
     private Cola<PCB> colaListos;
     private Cola<PCB> colaBloqueados;
     private Cola<PCB> colaTerminados;
-    private Cola<SolicitudIO> colaSolicitudesIO; 
+    private Cola<SolicitudIO> colaSolicitudesIO;
 
     private Planificador planificadorDisco;
     private int cabezaDiscoActual;
-    private boolean direccionSubida; 
-    
+    private boolean direccionSubida;
+
     private boolean ejecutando;
     private Thread hiloSimulacion;
     private StringBuilder logEventos;
     private int contadorProcesos;
+
+    // Control de tiempo para operaciones I/O en ejecución
+    private SolicitudIO solicitudIOEnEjecucion;  // Solicitud actualmente ejecutándose
+    private int ciclosRestantesIO;               // Ciclos que faltan para completar I/O
 
     public SO(int tamanoDisco, int duracionCicloMs) {
         this.reloj = new Reloj(duracionCicloMs);
@@ -61,13 +66,17 @@ public class SO implements Runnable {
         this.colaTerminados = new Cola<>();
         this.colaSolicitudesIO = new Cola<>();
         
-        this.planificadorDisco = new FIFO(); 
+        this.planificadorDisco = new FIFO();
         this.cabezaDiscoActual = 0;
         this.direccionSubida = true;
-        
+
         this.logEventos = new StringBuilder();
         this.ejecutando = false;
         this.contadorProcesos = 0;
+
+        // Inicializar control de I/O
+        this.solicitudIOEnEjecucion = null;
+        this.ciclosRestantesIO = 0;
 
         // Precarga de datos de ejemplo
         precargarDatos();
@@ -143,6 +152,51 @@ public class SO implements Runnable {
             bloqueObjetivo = ((Archivo) hijo).getDireccionPrimerBloque();
         }
         SolicitudIO solicitud = new SolicitudIO(TipoOperacion.ACTUALIZAR_ARCHIVO, nombreActual, nuevoNombre, bloqueObjetivo);
+        PCB proceso = new PCB(++contadorProcesos, "Proceso-" + contadorProcesos, reloj.getCicloActual(), solicitud);
+        recibirSolicitud(proceso);
+    }
+
+    // Método para renombrar directamente (recibe el objeto y el directorio padre)
+    public void renombrarDirecto(Object elemento, Directorio padre, String nuevoNombre) {
+        if (elemento == null) {
+            System.err.println("ERROR: Elemento nulo al renombrar");
+            agregarLog("ERROR: Elemento nulo al renombrar");
+            return;
+        }
+
+        if (padre == null) {
+            System.err.println("ERROR: Directorio padre nulo al renombrar");
+            agregarLog("ERROR: Directorio padre nulo al renombrar");
+            return;
+        }
+
+        String nombreActual = "";
+        int bloqueObjetivo = 0;
+
+        if (elemento instanceof Archivo) {
+            Archivo archivo = (Archivo) elemento;
+            nombreActual = archivo.getNombre();
+            bloqueObjetivo = archivo.getDireccionPrimerBloque();
+
+            System.out.println("DEBUG: Renombrando archivo '" + nombreActual + "' a '" + nuevoNombre + "' en directorio '" + padre.getNombre() + "'");
+        } else if (elemento instanceof Directorio) {
+            Directorio directorio = (Directorio) elemento;
+            nombreActual = directorio.getNombre();
+            bloqueObjetivo = 0; // Directorios no tienen bloques
+
+            System.out.println("DEBUG: Renombrando directorio '" + nombreActual + "' a '" + nuevoNombre + "' en directorio '" + padre.getNombre() + "'");
+        } else {
+            System.err.println("ERROR: Tipo de elemento desconocido al renombrar");
+            agregarLog("ERROR: Tipo de elemento desconocido al renombrar");
+            return;
+        }
+
+        // Crear solicitud I/O con el nombre actual y nuevo nombre
+        SolicitudIO solicitud = new SolicitudIO(TipoOperacion.ACTUALIZAR_ARCHIVO, nombreActual, nuevoNombre, bloqueObjetivo);
+
+        // Guardar el directorio padre en una variable temporal para que ejecutarIO lo use
+        directorioTemporal = padre;
+
         PCB proceso = new PCB(++contadorProcesos, "Proceso-" + contadorProcesos, reloj.getCicloActual(), solicitud);
         recibirSolicitud(proceso);
     }
@@ -253,27 +307,61 @@ public class SO implements Runnable {
                     }
                 }
 
-                // Solo procesar I/O si NO se generó en este ciclo
-                if (!colaSolicitudesIO.estaVacia() && !ioGeneradaEsteCiclo) {
+                // ============================================================
+                // FASE 3: PROCESAMIENTO DE I/O (toma varios ciclos)
+                // ============================================================
+
+                // Si hay una operación I/O en ejecución, continuar ejecutándola
+                if (solicitudIOEnEjecucion != null) {
+                    ciclosRestantesIO--;
+                    agregarLog("Ejecutando I/O: " + solicitudIOEnEjecucion.toString() +
+                               " (ciclos restantes: " + ciclosRestantesIO + ")");
+
+                    // Si completó los ciclos de I/O
+                    if (ciclosRestantesIO <= 0) {
+                        agregarLog("I/O completada: " + solicitudIOEnEjecucion.toString());
+
+                        // Ejecutar la operación real
+                        ejecutarOperacionReal(solicitudIOEnEjecucion);
+
+                        // Desbloquear proceso
+                        desbloquearProceso(solicitudIOEnEjecucion);
+
+                        // Limpiar operación en ejecución
+                        solicitudIOEnEjecucion = null;
+                        ciclosRestantesIO = 0;
+                    }
+                }
+                // Si no hay operación I/O en ejecución Y no se generó I/O este ciclo,
+                // seleccionar la siguiente (pero NO ejecutarla aún, esperar al próximo ciclo)
+                else if (!colaSolicitudesIO.estaVacia() && !ioGeneradaEsteCiclo) {
 
                     SolicitudIO siguienteSolicitud = planificadorDisco.seleccionarSiguiente(
-                        colaSolicitudesIO, 
-                        cabezaDiscoActual, 
-                        disco.getTamanoTotal(), 
+                        colaSolicitudesIO,
+                        cabezaDiscoActual,
+                        disco.getTamanoTotal(),
                         direccionSubida
                     );
-                    
-                    if (siguienteSolicitud != null) {
 
+                    if (siguienteSolicitud != null) {
+                        // Calcular distancia del cabezal
+                        int distancia = Math.abs(siguienteSolicitud.getBloqueObjetivo() - cabezaDiscoActual);
+
+                        // Mover cabezal
                         cabezaDiscoActual = siguienteSolicitud.getBloqueObjetivo();
 
                         if (cabezaDiscoActual == disco.getTamanoTotal() - 1) direccionSubida = false;
                         if (cabezaDiscoActual == 0) direccionSubida = true;
 
-                        ejecutarOperacionReal(siguienteSolicitud);
-                        
+                        // Iniciar operación I/O (toma 5-8 ciclos para más visibilidad y acumulación en cola)
+                        solicitudIOEnEjecucion = siguienteSolicitud;
+                        ciclosRestantesIO = 5 + (int)(Math.random() * 4);  // 5 a 8 ciclos
 
-                        desbloquearProceso(siguienteSolicitud);
+                        agregarLog(String.format("Planificador: Seleccionó %s (distancia: %d) - Iniciará I/O en próximo ciclo (%d ciclos totales)",
+                                   siguienteSolicitud.toString(), distancia, ciclosRestantesIO));
+
+                        // IMPORTANTE: NO decrementar ni ejecutar en este ciclo
+                        // Esperar al próximo ciclo para comenzar la ejecución
                     }
                 }
 
@@ -285,8 +373,8 @@ public class SO implements Runnable {
     
     private void ejecutarOperacionReal(SolicitudIO solicitud) {
 
-
-        Directorio padre = this.directorioActual; 
+        // Usar directorioTemporal si está definido, sino directorioActual
+        Directorio padre = (this.directorioTemporal != null) ? this.directorioTemporal : this.directorioActual;
 
         TipoOperacion tipo = solicitud.getTipo();
         String nombreArchivo = solicitud.getNombreArchivo();
@@ -366,6 +454,9 @@ public class SO implements Runnable {
         } else {
             agregarLog("Disco: FALLÓ " + logMsg);
         }
+
+        // Limpiar directorio temporal después de usar
+        this.directorioTemporal = null;
     }
 
     private void desbloquearProceso(SolicitudIO solicitudCompletada) {
@@ -457,6 +548,8 @@ public class SO implements Runnable {
     public SD getDisco() { return disco; }
     public SistemaArchivos getSistemaArchivos() { return sistemaArchivos; }
     public Cola<SolicitudIO> getColaSolicitudes() { return colaSolicitudesIO; }
+    public SolicitudIO getSolicitudIOEnEjecucion() { return solicitudIOEnEjecucion; }
+    public int getCiclosRestantesIO() { return ciclosRestantesIO; }
     public String getLog() { return logEventos.toString(); }
     public int getCabezaDisco() { return cabezaDiscoActual; }
     public Reloj getReloj() { return reloj; }

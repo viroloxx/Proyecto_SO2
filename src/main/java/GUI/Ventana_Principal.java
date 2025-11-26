@@ -818,7 +818,15 @@ public class Ventana_Principal extends javax.swing.JFrame {
         for (PCB p : simulador.getColaBloqueados()) {
             modeloListaProcesos.addElement("  " + p.getNombre() + " - " + p.getEstado());
         }
-        
+
+        // Mostrar I/O en ejecución
+        modeloListaProcesos.addElement("=== I/O EN EJECUCION ===");
+        SolicitudIO ioEnEjecucion = simulador.getSolicitudIOEnEjecucion();
+        if (ioEnEjecucion != null) {
+            int ciclosRestantes = simulador.getCiclosRestantesIO();
+            modeloListaProcesos.addElement("  " + ioEnEjecucion.toString() +
+                                          " [" + ciclosRestantes + " ciclos restantes]");
+        }
 
         modeloListaProcesos.addElement("=== COLA I/O ===");
         for (SolicitudIO s : simulador.getColaSolicitudes()) {
@@ -964,33 +972,64 @@ public class Ventana_Principal extends javax.swing.JFrame {
     }
     private void renombrar() {
         if (!modoAdministrador) {
-            JOptionPane.showMessageDialog(this, "Operacion no permitida en modo Usuario", 
+            JOptionPane.showMessageDialog(this, "Operacion no permitida en modo Usuario",
                 "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
+
         TreePath path = arbolArchivos.getSelectionPath();
         if (path == null) {
-            JOptionPane.showMessageDialog(this, "Seleccione un elemento del arbol", 
+            JOptionPane.showMessageDialog(this, "Seleccione un elemento del arbol",
                 "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
+
         DefaultMutableTreeNode nodo = (DefaultMutableTreeNode) path.getLastPathComponent();
         Object obj = nodo.getUserObject();
-        String nombreActual = null;
-        
+
+        // Validar que no sea la raíz
+        if (obj instanceof Directorio && ((Directorio) obj).getNombre().equals("raiz")) {
+            JOptionPane.showMessageDialog(this, "No se puede renombrar el directorio raíz",
+                "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Obtener directorio padre
+        DefaultMutableTreeNode nodoPadre = (DefaultMutableTreeNode) nodo.getParent();
+        if (nodoPadre == null) {
+            JOptionPane.showMessageDialog(this, "Error al obtener directorio padre",
+                "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        Object objPadre = nodoPadre.getUserObject();
+        Directorio padre = null;
+
+        if (objPadre instanceof Directorio) {
+            padre = (Directorio) objPadre;
+        } else if (objPadre instanceof String && objPadre.equals("raiz")) {
+            // Si el padre es el nodo raíz (String), obtener directorio raíz del sistema
+            padre = simulador.getSistemaArchivos().getDirectorioRaiz();
+        }
+
+        if (padre == null) {
+            JOptionPane.showMessageDialog(this, "Error: No se pudo determinar el directorio padre",
+                "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String nombreActual = "";
         if (obj instanceof Archivo) {
             nombreActual = ((Archivo) obj).getNombre();
         } else if (obj instanceof Directorio) {
             nombreActual = ((Directorio) obj).getNombre();
         }
-        
-        if (nombreActual != null && !nombreActual.equals("raiz")) {
-            String nuevoNombre = JOptionPane.showInputDialog(this, 
+
+        if (!nombreActual.isEmpty()) {
+            String nuevoNombre = JOptionPane.showInputDialog(this,
                 "Nuevo nombre para '" + nombreActual + "':");
             if (nuevoNombre != null && !nuevoNombre.trim().isEmpty()) {
-                simulador.renombrarDesdeGUI(nombreActual, nuevoNombre.trim());
+                simulador.renombrarDirecto(obj, padre, nuevoNombre.trim());
             }
         }
     }
