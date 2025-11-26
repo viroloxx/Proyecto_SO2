@@ -195,12 +195,29 @@ public class PersistenciaJSON {
                 int tamano = Integer.parseInt(extraerValor(objetoJson, "tamano"));
                 String propietario = extraerValor(objetoJson, "propietario");
 
+                // NUEVO: Extraer primerBloque si está especificado
+                String primerBloqueStr = extraerValor(objetoJson, "primerBloque");
+                Integer bloqueInicio = null;
+                if (primerBloqueStr != null && !primerBloqueStr.isEmpty()) {
+                    try {
+                        bloqueInicio = Integer.parseInt(primerBloqueStr);
+                    } catch (NumberFormatException e) {
+                        bloqueInicio = null;
+                    }
+                }
+
                 if (propietario == null || propietario.isEmpty()) {
                     propietario = "admin";
                 }
 
-                System.out.println("  Creando archivo: " + nombre + " (" + tamano + " bloques, propietario: " + propietario + ")");
-                sistemaArchivos.crearArchivo(nombre, tamano, directorioActual, propietario);
+                // Si se especificó un bloque inicial, usar método de asignación estratégica
+                if (bloqueInicio != null && bloqueInicio > 0) {
+                    System.out.println("  Creando archivo: " + nombre + " (" + tamano + " bloques, propietario: " + propietario + ", bloque inicial: ~" + bloqueInicio + ")");
+                    sistemaArchivos.crearArchivoEnBloque(nombre, tamano, directorioActual, propietario, bloqueInicio);
+                } else {
+                    System.out.println("  Creando archivo: " + nombre + " (" + tamano + " bloques, propietario: " + propietario + ")");
+                    sistemaArchivos.crearArchivo(nombre, tamano, directorioActual, propietario);
+                }
 
             } else if ("directorio".equals(tipo)) {
                 // Crear subdirectorio

@@ -55,6 +55,30 @@ public class SistemaArchivos {
         System.out.println("Archivo creado: " + nombreArchivo + " (propietario: " + propietario + ") en " + padre.getNombre());
         return nuevoArchivo;
     }
+
+    /**
+     * Crea un archivo con asignación de bloques desde una posición específica
+     * Útil para distribuir archivos estratégicamente en el disco (demo de planificadores)
+     */
+    public Archivo crearArchivoEnBloque(String nombreArchivo, int tamanoEnBloques, Directorio padre, String propietario, int bloqueInicio) {
+        if (padre.buscarHijo(nombreArchivo) != null) {
+            System.err.println("Error: Ya existe un archivo o directorio con ese nombre.");
+            return null;
+        }
+
+        // Usar el nuevo método que asigna desde un bloque específico
+        int primerBloque = disco.alocarBloquesDesde(nombreArchivo, tamanoEnBloques, bloqueInicio);
+
+        if (primerBloque == -1) {
+            return null;
+        }
+
+        Archivo nuevoArchivo = new Archivo(nombreArchivo, tamanoEnBloques, primerBloque, propietario);
+        padre.agregarArchivo(nuevoArchivo);
+
+        System.out.println("Archivo creado: " + nombreArchivo + " (propietario: " + propietario + ") iniciando en bloque ~" + bloqueInicio + " (asignado: " + primerBloque + ")");
+        return nuevoArchivo;
+    }
     
     public Directorio crearDirectorio(String nombreDirectorio, Directorio padre) {
         if (padre.buscarHijo(nombreDirectorio) != null) {
