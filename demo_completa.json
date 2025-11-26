@@ -1,0 +1,328 @@
+{
+  "descripcion": "Configuración completa para demostrar TODOS los requerimientos del sistema",
+  "objetivo": "Cargar sistema de archivos completo que demuestre asignación encadenada, planificadores, cache y modos de usuario",
+  "raiz": {
+    "nombre": "raiz",
+    "tipo": "directorio",
+    "hijos": [
+      {
+        "nombre": "readme.txt",
+        "tipo": "archivo",
+        "tamano": 3,
+        "primerBloque": 0,
+        "propietario": "admin",
+        "colorR": 100,
+        "colorG": 149,
+        "colorB": 237
+      },
+      {
+        "nombre": "config.ini",
+        "tipo": "archivo",
+        "tamano": 2,
+        "primerBloque": 0,
+        "propietario": "admin",
+        "colorR": 255,
+        "colorG": 183,
+        "colorB": 77
+      },
+      {
+        "nombre": "licencia.txt",
+        "tipo": "archivo",
+        "tamano": 1,
+        "primerBloque": 0,
+        "propietario": "admin",
+        "colorR": 144,
+        "colorG": 238,
+        "colorB": 144
+      },
+      {
+        "nombre": "documentos",
+        "tipo": "directorio",
+        "hijos": [
+          {
+            "nombre": "informe_anual.docx",
+            "tipo": "archivo",
+            "tamano": 8,
+            "primerBloque": 0,
+            "propietario": "admin",
+            "colorR": 92,
+            "colorG": 184,
+            "colorB": 92
+          },
+          {
+            "nombre": "notas_reunion.txt",
+            "tipo": "archivo",
+            "tamano": 3,
+            "primerBloque": 0,
+            "propietario": "admin",
+            "colorR": 255,
+            "colorG": 218,
+            "colorB": 185
+          },
+          {
+            "nombre": "manual_usuario.pdf",
+            "tipo": "archivo",
+            "tamano": 3,
+            "primerBloque": 0,
+            "propietario": "admin",
+            "colorR": 221,
+            "colorG": 160,
+            "colorB": 221
+          },
+          {
+            "nombre": "presupuesto.xlsx",
+            "tipo": "archivo",
+            "tamano": 4,
+            "primerBloque": 0,
+            "propietario": "admin",
+            "colorR": 34,
+            "colorG": 139,
+            "colorB": 34
+          }
+        ]
+      },
+      {
+        "nombre": "imagenes",
+        "tipo": "directorio",
+        "hijos": [
+          {
+            "nombre": "foto_equipo.jpg",
+            "tipo": "archivo",
+            "tamano": 6,
+            "primerBloque": 0,
+            "propietario": "admin",
+            "colorR": 255,
+            "colorG": 105,
+            "colorB": 180
+          },
+          {
+            "nombre": "logo_empresa.png",
+            "tipo": "archivo",
+            "tamano": 4,
+            "primerBloque": 0,
+            "propietario": "admin",
+            "colorR": 64,
+            "colorG": 224,
+            "colorB": 208
+          },
+          {
+            "nombre": "banner.jpg",
+            "tipo": "archivo",
+            "tamano": 5,
+            "primerBloque": 0,
+            "propietario": "admin",
+            "colorR": 255,
+            "colorG": 140,
+            "colorB": 0
+          }
+        ]
+      },
+      {
+        "nombre": "proyectos",
+        "tipo": "directorio",
+        "hijos": [
+          {
+            "nombre": "base_datos.db",
+            "tipo": "archivo",
+            "tamano": 10,
+            "primerBloque": 0,
+            "propietario": "admin",
+            "colorR": 178,
+            "colorG": 34,
+            "colorB": 34
+          },
+          {
+            "nombre": "backup_2024.zip",
+            "tipo": "archivo",
+            "tamano": 15,
+            "primerBloque": 0,
+            "propietario": "admin",
+            "colorR": 138,
+            "colorG": 43,
+            "colorB": 226
+          },
+          {
+            "nombre": "codigo_fuente.tar",
+            "tipo": "archivo",
+            "tamano": 7,
+            "primerBloque": 0,
+            "propietario": "admin",
+            "colorR": 255,
+            "colorG": 69,
+            "colorB": 0
+          }
+        ]
+      },
+      {
+        "nombre": "multimedia",
+        "tipo": "directorio",
+        "hijos": [
+          {
+            "nombre": "video_presentacion.mp4",
+            "tipo": "archivo",
+            "tamano": 20,
+            "primerBloque": 0,
+            "propietario": "admin",
+            "colorR": 123,
+            "colorG": 104,
+            "colorB": 238
+          },
+          {
+            "nombre": "audio_intro.mp3",
+            "tipo": "archivo",
+            "tamano": 5,
+            "primerBloque": 0,
+            "propietario": "admin",
+            "colorR": 255,
+            "colorG": 165,
+            "colorB": 0
+          }
+        ]
+      },
+      {
+        "nombre": "sistema",
+        "tipo": "directorio",
+        "hijos": []
+      }
+    ]
+  },
+  "resumen": {
+    "totalArchivos": 17,
+    "totalDirectorios": 6,
+    "bloquesTotales": 105,
+    "distribucion": [
+      "readme.txt: 3 bloques (asignación encadenada)",
+      "config.ini: 2 bloques",
+      "licencia.txt: 1 bloque",
+      "informe_anual.docx: 8 bloques (DEMOSTRACION ASIGNACION ENCADENADA)",
+      "notas_reunion.txt: 3 bloques",
+      "manual_usuario.pdf: 12 bloques (ARCHIVO GRANDE - asignación encadenada)",
+      "presupuesto.xlsx: 4 bloques",
+      "foto_equipo.jpg: 6 bloques",
+      "logo_empresa.png: 4 bloques",
+      "banner.jpg: 5 bloques",
+      "base_datos.db: 10 bloques (asignación encadenada)",
+      "backup_2024.zip: 15 bloques (ARCHIVO MUY GRANDE - asignación encadenada)",
+      "codigo_fuente.tar: 7 bloques",
+      "video_presentacion.mp4: 20 bloques (ARCHIVO MÁS GRANDE - asignación encadenada)",
+      "audio_intro.mp3: 5 bloques"
+    ],
+    "nota": "El campo 'primerBloque' en 0 es solo placeholder. El sistema asignará dinámicamente los bloques según disponibilidad."
+  },
+  "guiaDemo": {
+    "paso1_asignacionEncadenada": {
+      "titulo": "Demostrar Asignación Encadenada",
+      "acciones": [
+        "1. Ir a pestaña 'Tabla de Asignación'",
+        "2. Buscar 'video_presentacion.mp4' (20 bloques)",
+        "3. Observar columna 'Siguiente Bloque'",
+        "4. Ejemplo: Bloque 45 → 52 → 61 → 67 → ... (cadena de 20 bloques)",
+        "5. Buscar 'manual_usuario.pdf' (12 bloques)",
+        "6. Observar la cadena de 12 bloques enlazados"
+      ]
+    },
+    "paso2_planificadores": {
+      "titulo": "Comparar Planificadores de Disco",
+      "operaciones": [
+        "1. Configurar velocidad: x1 (500ms)",
+        "2. Seleccionar planificador FIFO",
+        "3. Leer archivos en este orden:",
+        "   - video_presentacion.mp4 (bloque lejano)",
+        "   - readme.txt (bloque cercano al inicio)",
+        "   - base_datos.db (bloque medio)",
+        "   - logo_empresa.png (bloque cercano)",
+        "4. Observar movimiento del cabezal (rectángulo rojo)",
+        "5. Cambiar a SSTF y repetir las mismas lecturas",
+        "6. Comparar distancia recorrida en el log"
+      ]
+    },
+    "paso3_bufferCache": {
+      "titulo": "Demostrar Buffer Cache FIFO",
+      "operaciones": [
+        "1. Ir a pestaña 'Cache'",
+        "2. Leer readme.txt → CACHE MISS (primera vez)",
+        "3. Leer config.ini → CACHE MISS",
+        "4. Leer readme.txt → CACHE HIT ✓ (ya está en cache)",
+        "5. Leer licencia.txt → CACHE MISS",
+        "6. Leer config.ini → CACHE HIT ✓",
+        "7. Leer readme.txt → CACHE HIT ✓",
+        "8. Observar estadísticas: Tasa de aciertos ~50%"
+      ]
+    },
+    "paso4_estadosProcesos": {
+      "titulo": "Observar Estados de Procesos",
+      "operaciones": [
+        "1. Ajustar velocidad a x0.5 (más lento)",
+        "2. Crear un nuevo archivo (nombre: test.dat, tamaño: 5 bloques)",
+        "3. Observar en panel 'Cola de Procesos':",
+        "   - Proceso aparece en LISTO",
+        "   - Pasa a EJECUTANDO (en CPU) - ver log: 'necesita N ciclos'",
+        "   - Ejecuta 2-4 ciclos (log: 'ciclos restantes: N')",
+        "   - Pasa a BLOQUEADO - aparece en 'Cola I/O'",
+        "   - Al completar I/O → TERMINADO",
+        "4. Verificar en log el ciclo completo"
+      ]
+    },
+    "paso5_modoUsuario": {
+      "titulo": "Demostrar Modo Usuario vs Administrador",
+      "operaciones": [
+        "1. Cambiar a Modo Usuario (radio button)",
+        "2. Observar botones deshabilitados: Crear, Eliminar, Renombrar",
+        "3. Hacer doble click en 'readme.txt' → Lectura PERMITIDA ✓",
+        "4. Hacer doble click en 'manual_usuario.pdf' → Lectura PERMITIDA ✓",
+        "5. Intentar crear archivo → BLOQUEADO (botón deshabilitado)",
+        "6. Cambiar a Modo Administrador",
+        "7. Crear archivo → PERMITIDO ✓",
+        "8. Eliminar archivo → PERMITIDO ✓"
+      ]
+    }
+  },
+  "metricasEsperadas": {
+    "disco": {
+      "bloquesOcupados": 105,
+      "bloquesPorcentaje": "105% (si disco = 100, necesitarás disco más grande)",
+      "sugerenciaTamañoDisco": "Usar disco de al menos 120 bloques para esta demo"
+    },
+    "cache": {
+      "tamañoRecomendado": 10,
+      "tasaEsperadaConRelecturas": "40-60%",
+      "politica": "FIFO - el bloque más antiguo se reemplaza"
+    },
+    "procesos": {
+      "ciclosEnCPU": "2-4 ciclos por proceso",
+      "ciclosEnIO": "1-3 ciclos según planificador",
+      "cicloTotal": "6-10 ciclos por proceso completo"
+    }
+  },
+  "archivosGrandesParaDemo": [
+    {
+      "nombre": "video_presentacion.mp4",
+      "bloques": 20,
+      "uso": "MEJOR ejemplo de asignación encadenada (20 bloques enlazados)"
+    },
+    {
+      "nombre": "backup_2024.zip",
+      "bloques": 15,
+      "uso": "Archivo grande que genera movimiento de cabezal significativo"
+    },
+    {
+      "nombre": "manual_usuario.pdf",
+      "bloques": 12,
+      "uso": "Documento grande para demostrar cadena de bloques"
+    },
+    {
+      "nombre": "base_datos.db",
+      "bloques": 10,
+      "uso": "Base de datos con asignación encadenada de 10 bloques"
+    }
+  ],
+  "notas": [
+    "✓ TOTAL: 17 archivos + 6 directorios = 23 elementos",
+    "✓ Bloques requeridos: 105 bloques",
+    "✓ IMPORTANTE: Configura el disco con al menos 120 bloques para esta demo",
+    "✓ Todos los archivos tienen propietario 'admin' (creados por administrador)",
+    "✓ Usuario en modo lectura puede leer TODOS estos archivos",
+    "✓ Los bloques se asignarán dinámicamente al cargar el JSON",
+    "✓ Colores RGB asignados para visualización clara en el disco"
+  ]
+}

@@ -10,6 +10,7 @@ public class SolicitudIO {
     private final int tamanoEnBloques;
     private final String nuevoNombre;
     private final int bloqueObjetivo;
+    private final String propietario;
 
     public SolicitudIO(TipoOperacion tipo, String nombreArchivo, int tamanoEnBloques, int bloqueObjetivo) {
         this.tipo = tipo;
@@ -17,6 +18,16 @@ public class SolicitudIO {
         this.tamanoEnBloques = tamanoEnBloques;
         this.bloqueObjetivo = bloqueObjetivo;
         this.nuevoNombre = null;
+        this.propietario = "admin";
+    }
+
+    public SolicitudIO(TipoOperacion tipo, String nombreArchivo, int tamanoEnBloques, int bloqueObjetivo, String propietario) {
+        this.tipo = tipo;
+        this.nombreArchivo = nombreArchivo;
+        this.tamanoEnBloques = tamanoEnBloques;
+        this.bloqueObjetivo = bloqueObjetivo;
+        this.nuevoNombre = null;
+        this.propietario = propietario;
     }
 
     public SolicitudIO(TipoOperacion tipo, String nombreArchivo, int bloqueObjetivo) {
@@ -25,6 +36,7 @@ public class SolicitudIO {
         this.tamanoEnBloques = 0;
         this.bloqueObjetivo = bloqueObjetivo;
         this.nuevoNombre = null;
+        this.propietario = "admin";
     }
 
     public SolicitudIO(TipoOperacion tipo, String nombreArchivo, String nuevoNombre, int bloqueObjetivo) {
@@ -33,6 +45,7 @@ public class SolicitudIO {
         this.nuevoNombre = nuevoNombre;
         this.tamanoEnBloques = 0;
         this.bloqueObjetivo = bloqueObjetivo;
+        this.propietario = "admin";
     }
 
     public TipoOperacion getTipo() { return tipo; }
@@ -40,6 +53,7 @@ public class SolicitudIO {
     public int getTamanoEnBloques() { return tamanoEnBloques; }
     public String getNuevoNombre() { return nuevoNombre; }
     public int getBloqueObjetivo() { return bloqueObjetivo; }
+    public String getPropietario() { return propietario; }
 
     @Override
     public String toString() {

@@ -28,27 +28,31 @@ public class SistemaArchivos {
         return this.disco;
     }
 
-   
-    public Archivo crearArchivo(String nombreArchivo, int tamanoEnBloques, Directorio padre) {      
+
+    public Archivo crearArchivo(String nombreArchivo, int tamanoEnBloques, Directorio padre) {
+        return crearArchivo(nombreArchivo, tamanoEnBloques, padre, "admin");
+    }
+
+    public Archivo crearArchivo(String nombreArchivo, int tamanoEnBloques, Directorio padre, String propietario) {
         if (padre.buscarHijo(nombreArchivo) != null) {
             System.err.println("Error: Ya existe un archivo o directorio con ese nombre.");
             return null;
         }
         int primerBloque = disco.alocarBloques(nombreArchivo, tamanoEnBloques);
 
-    
+
         if (primerBloque == -1) {
-           
-            return null; 
+
+            return null;
         }
 
 
-        Archivo nuevoArchivo = new Archivo(nombreArchivo, tamanoEnBloques, primerBloque);
+        Archivo nuevoArchivo = new Archivo(nombreArchivo, tamanoEnBloques, primerBloque, propietario);
 
-        
+
         padre.agregarArchivo(nuevoArchivo);
-        
-        System.out.println("Archivo creado: " + nombreArchivo + " en " + padre.getNombre());
+
+        System.out.println("Archivo creado: " + nombreArchivo + " (propietario: " + propietario + ") en " + padre.getNombre());
         return nuevoArchivo;
     }
     

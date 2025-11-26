@@ -95,6 +95,183 @@ public class PersistenciaJSON {
      */
     public static void cargarEstado(SistemaArchivos sistemaArchivos, SD disco, String rutaArchivo) {
         System.out.println("Cargando estado desde: " + rutaArchivo);
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(rutaArchivo))) {
+            StringBuilder jsonContent = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                jsonContent.append(line).append("\n");
+            }
+
+            // Limpiar el sistema de archivos antes de cargar
+            System.out.println("Limpiando sistema de archivos existente...");
+            limpiarDirectorio(sistemaArchivos.getDirectorioRaiz(), sistemaArchivos, disco);
+
+            // Parsear JSON manualmente (sin librerías externas)
+            String json = jsonContent.toString();
+
+            // Buscar el objeto "raiz"
+            int raizIndex = json.indexOf("\"raiz\"");
+            if (raizIndex == -1) {
+                System.err.println("No se encontró el elemento 'raiz' en el JSON");
+                return;
+            }
+
+            // Extraer la sección raiz
+            int raizStart = json.indexOf("{", raizIndex);
+            int raizEnd = encontrarCierreObjeto(json, raizStart);
+            String raizJson = json.substring(raizStart, raizEnd + 1);
+
+            // Procesar el directorio raiz
+            procesarDirectorio(raizJson, sistemaArchivos.getDirectorioRaiz(), sistemaArchivos);
+
+            System.out.println("Estado cargado exitosamente desde: " + rutaArchivo);
+            System.out.println("Bloques ocupados: " + (disco.getTamanoTotal() - disco.getBloquesLibres()) + " de " + disco.getTamanoTotal());
+
+        } catch (IOException e) {
+            System.err.println("Error al cargar estado: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private static void limpiarDirectorio(Directorio dir, SistemaArchivos sistemaArchivos, SD disco) {
+        ListaEnlazada<Object> hijos = dir.getHijos();
+
+        // Crear copia del contenido para evitar problemas de concurrencia
+        Object[] hijosCopia = new Object[hijos.size()];
+        int i = 0;
+        for (Object hijo : hijos) {
+            hijosCopia[i++] = hijo;
+        }
+
+        // Eliminar cada hijo
+        for (Object hijo : hijosCopia) {
+            if (hijo == null) continue;
+
+            if (hijo instanceof Archivo) {
+                Archivo arch = (Archivo) hijo;
+                // Liberar bloques del disco
+                disco.liberarBloques(arch.getDireccionPrimerBloque());
+                // Eliminar del directorio
+                dir.eliminarHijo(arch);
+                System.out.println("  Eliminado archivo: " + arch.getNombre());
+
+            } else if (hijo instanceof Directorio) {
+                Directorio subDir = (Directorio) hijo;
+                // Limpiar recursivamente
+                limpiarDirectorio(subDir, sistemaArchivos, disco);
+                // Eliminar el subdirectorio
+                dir.eliminarHijo(subDir);
+                System.out.println("  Eliminado directorio: " + subDir.getNombre());
+            }
+        }
+    }
+
+    private static void procesarDirectorio(String dirJson, Directorio directorioActual, SistemaArchivos sistemaArchivos) {
+        // Buscar el array "hijos"
+        int hijosIndex = dirJson.indexOf("\"hijos\"");
+        if (hijosIndex == -1) return;
+
+        int arrayStart = dirJson.indexOf("[", hijosIndex);
+        int arrayEnd = encontrarCierreArray(dirJson, arrayStart);
+        String hijosJson = dirJson.substring(arrayStart + 1, arrayEnd);
+
+        // Procesar cada hijo
+        int pos = 0;
+        while (pos < hijosJson.length()) {
+            // Buscar siguiente objeto
+            int objStart = hijosJson.indexOf("{", pos);
+            if (objStart == -1) break;
+
+            int objEnd = encontrarCierreObjeto(hijosJson, objStart);
+            String objetoJson = hijosJson.substring(objStart, objEnd + 1);
+
+            // Extraer tipo
+            String tipo = extraerValor(objetoJson, "tipo");
+
+            if ("archivo".equals(tipo)) {
+                // Crear archivo
+                String nombre = extraerValor(objetoJson, "nombre");
+                int tamano = Integer.parseInt(extraerValor(objetoJson, "tamano"));
+                String propietario = extraerValor(objetoJson, "propietario");
+
+                if (propietario == null || propietario.isEmpty()) {
+                    propietario = "admin";
+                }
+
+                System.out.println("  Creando archivo: " + nombre + " (" + tamano + " bloques, propietario: " + propietario + ")");
+                sistemaArchivos.crearArchivo(nombre, tamano, directorioActual, propietario);
+
+            } else if ("directorio".equals(tipo)) {
+                // Crear subdirectorio
+                String nombre = extraerValor(objetoJson, "nombre");
+
+                if (!"raiz".equals(nombre)) {
+                    System.out.println("  Creando directorio: " + nombre);
+                    Directorio nuevoDir = sistemaArchivos.crearDirectorio(nombre, directorioActual);
+
+                    // Procesar hijos del subdirectorio recursivamente
+                    if (nuevoDir != null) {
+                        procesarDirectorio(objetoJson, nuevoDir, sistemaArchivos);
+                    }
+                }
+            }
+
+            pos = objEnd + 1;
+        }
+    }
+
+    private static String extraerValor(String json, String campo) {
+        String patron = "\"" + campo + "\"";
+        int index = json.indexOf(patron);
+        if (index == -1) return null;
+
+        int colonIndex = json.indexOf(":", index);
+        if (colonIndex == -1) return null;
+
+        // Saltar espacios
+        colonIndex++;
+        while (colonIndex < json.length() && Character.isWhitespace(json.charAt(colonIndex))) {
+            colonIndex++;
+        }
+
+        // Si es string (comienza con ")
+        if (json.charAt(colonIndex) == '"') {
+            int startQuote = colonIndex + 1;
+            int endQuote = json.indexOf("\"", startQuote);
+            return json.substring(startQuote, endQuote);
+        } else {
+            // Es número
+            int end = colonIndex;
+            while (end < json.length() && (Character.isDigit(json.charAt(end)) || json.charAt(end) == '-')) {
+                end++;
+            }
+            return json.substring(colonIndex, end);
+        }
+    }
+
+    private static int encontrarCierreObjeto(String json, int start) {
+        int count = 0;
+        for (int i = start; i < json.length(); i++) {
+            if (json.charAt(i) == '{') count++;
+            else if (json.charAt(i) == '}') {
+                count--;
+                if (count == 0) return i;
+            }
+        }
+        return json.length() - 1;
+    }
+
+    private static int encontrarCierreArray(String json, int start) {
+        int count = 0;
+        for (int i = start; i < json.length(); i++) {
+            if (json.charAt(i) == '[') count++;
+            else if (json.charAt(i) == ']') {
+                count--;
+                if (count == 0) return i;
+            }
+        }
+        return json.length() - 1;
     }
     
     /**

@@ -45,6 +45,7 @@ public class Ventana_Principal extends javax.swing.JFrame {
     private DefaultListModel<String> modeloListaProcesos;
     private JList<String> listaCache;
     private DefaultListModel<String> modeloListaCache;
+    private JLabel labelEstadisticasCache;
     private JLabel labelEstadoDisco;
     private JLabel labelCiclo;
     private JLabel labelCabeza;
@@ -60,6 +61,10 @@ public class Ventana_Principal extends javax.swing.JFrame {
     private JButton btnLeer;
     private JButton btnPausar;
     private JButton btnEstadisticas;
+
+    // Controles de velocidad
+    private JSlider sliderVelocidad;
+    private JLabel labelVelocidad;
 
     private static final int NUM_BLOQUES = 100;
     private static final int CICLO_MS = 500;
@@ -181,18 +186,87 @@ public class Ventana_Principal extends javax.swing.JFrame {
         panel.add(btnEstadisticas); 
     
         panel.add(new JSeparator(SwingConstants.VERTICAL));
-        
+
         btnPausar = new JButton("Pausar");
         btnPausar.addActionListener(e -> togglePausa());
         panel.add(btnPausar);
-        
+
+        panel.add(new JSeparator(SwingConstants.VERTICAL));
+
+        // Control de velocidad mejorado
+        JPanel panelVelocidad = new JPanel();
+        panelVelocidad.setLayout(new BoxLayout(panelVelocidad, BoxLayout.Y_AXIS));
+        panelVelocidad.setBorder(BorderFactory.createTitledBorder("Velocidad"));
+
+        // Panel superior con botones
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 3, 0));
+
+        JButton btnRapido = new JButton("x4");
+        btnRapido.setToolTipText("Muy rápido (100 ms)");
+        btnRapido.setPreferredSize(new Dimension(50, 25));
+        btnRapido.setFont(new Font("Arial", Font.BOLD, 10));
+        btnRapido.setBackground(new Color(255, 200, 200));
+        btnRapido.setFocusPainted(false);
+        btnRapido.addActionListener(e -> establecerVelocidad(100));
+        panelBotones.add(btnRapido);
+
+        JButton btnNormal = new JButton("x2");
+        btnNormal.setToolTipText("Normal (300 ms)");
+        btnNormal.setPreferredSize(new Dimension(50, 25));
+        btnNormal.setFont(new Font("Arial", Font.BOLD, 10));
+        btnNormal.setBackground(new Color(255, 240, 200));
+        btnNormal.setFocusPainted(false);
+        btnNormal.addActionListener(e -> establecerVelocidad(300));
+        panelBotones.add(btnNormal);
+
+        JButton btnLento = new JButton("x1");
+        btnLento.setToolTipText("Lento (500 ms)");
+        btnLento.setPreferredSize(new Dimension(50, 25));
+        btnLento.setFont(new Font("Arial", Font.BOLD, 10));
+        btnLento.setBackground(new Color(200, 255, 200));
+        btnLento.setFocusPainted(false);
+        btnLento.addActionListener(e -> establecerVelocidad(500));
+        panelBotones.add(btnLento);
+
+        JButton btnMuyLento = new JButton("x0.5");
+        btnMuyLento.setToolTipText("Muy lento (1000 ms)");
+        btnMuyLento.setPreferredSize(new Dimension(50, 25));
+        btnMuyLento.setFont(new Font("Arial", Font.BOLD, 10));
+        btnMuyLento.setBackground(new Color(200, 220, 255));
+        btnMuyLento.setFocusPainted(false);
+        btnMuyLento.addActionListener(e -> establecerVelocidad(1000));
+        panelBotones.add(btnMuyLento);
+
+        panelVelocidad.add(panelBotones);
+
+        // Panel inferior con slider y label
+        JPanel panelSlider = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 2));
+
+        sliderVelocidad = new JSlider(50, 2000, CICLO_MS);
+        sliderVelocidad.setMajorTickSpacing(500);
+        sliderVelocidad.setMinorTickSpacing(100);
+        sliderVelocidad.setPaintTicks(true);
+        sliderVelocidad.setPreferredSize(new Dimension(180, 30));
+        sliderVelocidad.addChangeListener(e -> cambiarVelocidadSimulacion());
+        panelSlider.add(sliderVelocidad);
+
+        labelVelocidad = new JLabel(CICLO_MS + " ms (Lento)");
+        labelVelocidad.setPreferredSize(new Dimension(100, 20));
+        labelVelocidad.setFont(new Font("Arial", Font.PLAIN, 11));
+        labelVelocidad.setHorizontalAlignment(SwingConstants.CENTER);
+        panelSlider.add(labelVelocidad);
+
+        panelVelocidad.add(panelSlider);
+
+        panel.add(panelVelocidad);
+        panel.add(new JSeparator(SwingConstants.VERTICAL));
 
         labelCiclo = new JLabel("Ciclo: 0");
         panel.add(labelCiclo);
-        
+
         labelCabeza = new JLabel("Cabeza: 0");
         panel.add(labelCabeza);
-        
+
         return panel;
     }
     
@@ -420,7 +494,16 @@ public class Ventana_Principal extends javax.swing.JFrame {
         listaCache = new JList<>(modeloListaCache);
         JScrollPane scrollCache = new JScrollPane(listaCache);
         panelCache.add(scrollCache, BorderLayout.CENTER);
-        panelCache.add(new JLabel("Máximo: 10 bloques"), BorderLayout.SOUTH);
+
+        // Panel de estadísticas del cache
+        JPanel panelEstadisticas = new JPanel();
+        panelEstadisticas.setLayout(new BoxLayout(panelEstadisticas, BoxLayout.Y_AXIS));
+        panelEstadisticas.setBorder(BorderFactory.createTitledBorder("Estadísticas de Rendimiento"));
+        labelEstadisticasCache = new JLabel("Hits: 0 | Misses: 0 | Tasa: 0%");
+        panelEstadisticas.add(labelEstadisticasCache);
+        panelEstadisticas.add(new JLabel("Máximo: 10 bloques"));
+
+        panelCache.add(panelEstadisticas, BorderLayout.SOUTH);
         pestanas.addTab("Cache", panelCache);
         
         return pestanas;
@@ -730,19 +813,27 @@ public class Ventana_Principal extends javax.swing.JFrame {
         if (modeloListaCache.isEmpty()) {
             modeloListaCache.addElement("(Cache vacio)");
         }
+
+        // Actualizar estadísticas de rendimiento
+        labelEstadisticasCache.setText(cache.getEstadisticas());
     }
     
     
     private void cambiarModo(boolean esAdmin) {
         modoAdministrador = esAdmin;
+
+        // Modo Usuario: SOLO LECTURA (todos los botones deshabilitados excepto leer)
+        // Modo Administrador: TODAS LAS OPERACIONES
         btnCrearArchivo.setEnabled(esAdmin);
         btnCrearDirectorio.setEnabled(esAdmin);
         btnEliminar.setEnabled(esAdmin);
         btnRenombrar.setEnabled(esAdmin);
+
         if (btnEstadisticas != null) {
             btnEstadisticas.setEnabled(esAdmin);
         }
 
+        // El botón leer está siempre habilitado (no hay btnLeer, se hace con doble click)
     }
     
     private void cambiarPlanificador() {
@@ -765,28 +856,32 @@ public class Ventana_Principal extends javax.swing.JFrame {
     }
     
     private void crearArchivo() {
+        // Solo el administrador puede crear archivos
         if (!modoAdministrador) {
-            JOptionPane.showMessageDialog(this, "Operacion no permitida en modo Usuario", 
+            JOptionPane.showMessageDialog(this, "Operacion no permitida en modo Usuario.\nModo Usuario: SOLO LECTURA",
                 "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
+
         String nombre = JOptionPane.showInputDialog(this, "Nombre del archivo:");
         if (nombre == null || nombre.trim().isEmpty()) return;
-        
+
         String tamanoStr = JOptionPane.showInputDialog(this, "Tamano en bloques (1-20):");
         if (tamanoStr == null) return;
-        
+
         try {
             int tamano = Integer.parseInt(tamanoStr);
             if (tamano < 1 || tamano > 20) {
-                JOptionPane.showMessageDialog(this, "El tamano debe estar entre 1 y 20", 
+                JOptionPane.showMessageDialog(this, "El tamano debe estar entre 1 y 20",
                     "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            simulador.crearArchivoDesdeGUI(nombre.trim(), tamano);
+
+            // Administrador crea archivos con propietario "admin"
+            simulador.crearArchivoDesdeGUI(nombre.trim(), tamano, "admin");
+
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Tamano invalido", 
+            JOptionPane.showMessageDialog(this, "Tamano invalido",
                 "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -820,7 +915,7 @@ public class Ventana_Principal extends javax.swing.JFrame {
     private void leerArchivo() {
         TreePath path = arbolArchivos.getSelectionPath();
         if (path == null) {
-            JOptionPane.showMessageDialog(this, "Seleccione un archivo del arbol", 
+            JOptionPane.showMessageDialog(this, "Seleccione un archivo del arbol",
                 "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -831,21 +926,10 @@ public class Ventana_Principal extends javax.swing.JFrame {
         if (obj instanceof Archivo) {
             Archivo arch = (Archivo) obj;
 
-            if (!modoAdministrador) {
-                String propietario = arch.getPropietario();
-
-                boolean esPropio = "Usuario".equals(propietario);
-                boolean esPublico = propietario == null || "Publico".equalsIgnoreCase(propietario);
-
-                if (!esPropio && !esPublico) {
-                    JOptionPane.showMessageDialog(this, 
-                        "ACCESO DENEGADO:\nEn Modo Usuario solo puede leer archivos propios o públicos.\nPropietario del archivo: " + propietario, 
-                        "Violación de Permisos", JOptionPane.WARNING_MESSAGE);
-                    return; 
-                }
-            }
-
-            simulador.leerArchivoDesdeGUI(arch.getNombre());
+            // Tanto administrador como usuario pueden leer TODOS los archivos
+            // Modo Usuario = Solo lectura (puede leer todo)
+            // Modo Administrador = Todas las operaciones (incluyendo leer todo)
+            simulador.leerArchivoDirecto(arch);
         } else {
             JOptionPane.showMessageDialog(this, "Solo se pueden leer archivos", 
                 "Error", JOptionPane.ERROR_MESSAGE);
@@ -930,6 +1014,32 @@ public class Ventana_Principal extends javax.swing.JFrame {
             simulador.pausar();
             btnPausar.setText("Reanudar");
         }
+    }
+
+    private void cambiarVelocidadSimulacion() {
+        if (simulador == null) return;
+
+        int nuevaVelocidad = sliderVelocidad.getValue();
+        simulador.cambiarVelocidad(nuevaVelocidad);
+
+        // Actualizar label con texto descriptivo
+        String textoVelocidad;
+        if (nuevaVelocidad <= 100) {
+            textoVelocidad = nuevaVelocidad + " ms (Rápido)";
+        } else if (nuevaVelocidad <= 500) {
+            textoVelocidad = nuevaVelocidad + " ms (Normal)";
+        } else if (nuevaVelocidad <= 1000) {
+            textoVelocidad = nuevaVelocidad + " ms (Lento)";
+        } else {
+            textoVelocidad = nuevaVelocidad + " ms (Muy Lento)";
+        }
+        labelVelocidad.setText(textoVelocidad);
+    }
+
+    private void establecerVelocidad(int velocidadMs) {
+        if (simulador == null) return;
+        sliderVelocidad.setValue(velocidadMs);
+        // El cambio del slider automáticamente llamará a cambiarVelocidadSimulacion()
     }
 
     public static void main(String args[]) {

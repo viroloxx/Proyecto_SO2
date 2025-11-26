@@ -31,31 +31,44 @@ public class BufferCache {
 
     private int tamanoMaximo;
     private SD discoDuro;
-    
+
     private Cola<EntradaCache> cacheFIFO;
 
     private ListaEnlazada<EntradaCache> cacheContenido;
 
+    // Estadísticas de rendimiento del cache
+    private int cacheHits;      // Accesos encontrados en cache
+    private int cacheMisses;    // Accesos que requirieron disco
+
     public BufferCache(int tamanoMaximo, SD discoDuro) {
-        this.tamanoMaximo = (tamanoMaximo <= 0) ? 5 : tamanoMaximo; 
+        this.tamanoMaximo = (tamanoMaximo <= 0) ? 5 : tamanoMaximo;
         this.discoDuro = discoDuro;
         this.cacheFIFO = new Cola<>();
         this.cacheContenido = new ListaEnlazada<>();
+        this.cacheHits = 0;
+        this.cacheMisses = 0;
     }
 
 
     public Bloque leerBloque(int indiceBloque) {
-        
+        // Validar índice de bloque
+        if (indiceBloque < 0 || indiceBloque >= discoDuro.getTamanoTotal()) {
+            System.err.println("ERROR BufferCache: Índice de bloque fuera de rango: " + indiceBloque);
+            return null;
+        }
+
         Bloque bloqueEnCache = buscarEnCache(indiceBloque);
-        
+
         if (bloqueEnCache != null) {
-
+            // Cache HIT: bloque encontrado en cache (no acceso a disco)
+            cacheHits++;
             return bloqueEnCache;
-            
-        } else {
 
+        } else {
+            // Cache MISS: se debe leer del disco
+            cacheMisses++;
             Bloque bloqueDeDisco = discoDuro.getBloques()[indiceBloque];
-            
+
             agregarAlCache(indiceBloque, bloqueDeDisco);
 
             return bloqueDeDisco;
@@ -94,8 +107,31 @@ public class BufferCache {
     public ListaEnlazada<EntradaCache> getCacheContenido() {
         return this.cacheContenido;
     }
-    
+
     public int getTamanoMaximo() {
         return this.tamanoMaximo;
+    }
+
+    public int getCacheHits() {
+        return this.cacheHits;
+    }
+
+    public int getCacheMisses() {
+        return this.cacheMisses;
+    }
+
+    public int getTotalAccesos() {
+        return this.cacheHits + this.cacheMisses;
+    }
+
+    public double getTasaAciertos() {
+        int total = getTotalAccesos();
+        if (total == 0) return 0.0;
+        return (double) cacheHits / total * 100.0;
+    }
+
+    public String getEstadisticas() {
+        return String.format("Hits: %d | Misses: %d | Total: %d | Tasa: %.1f%%",
+                cacheHits, cacheMisses, getTotalAccesos(), getTasaAciertos());
     }
 }

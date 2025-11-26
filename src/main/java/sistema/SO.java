@@ -68,12 +68,48 @@ public class SO implements Runnable {
         this.logEventos = new StringBuilder();
         this.ejecutando = false;
         this.contadorProcesos = 0;
+
+        // Precarga de datos de ejemplo
+        precargarDatos();
+    }
+
+    private void precargarDatos() {
+        agregarLog("Precargando datos de ejemplo...");
+
+        // Crear directorios
+        sistemaArchivos.crearDirectorio("documentos", directorioActual);
+        sistemaArchivos.crearDirectorio("imagenes", directorioActual);
+        sistemaArchivos.crearDirectorio("proyectos", directorioActual);
+
+        // Crear archivos en raíz
+        sistemaArchivos.crearArchivo("readme.txt", 2, directorioActual);
+        sistemaArchivos.crearArchivo("config.ini", 1, directorioActual);
+
+        // Archivos en subdirectorios
+        Directorio docs = (Directorio) directorioActual.buscarHijo("documentos");
+        if (docs != null) {
+            sistemaArchivos.crearArchivo("informe.docx", 5, docs);
+            sistemaArchivos.crearArchivo("notas.txt", 2, docs);
+        }
+
+        Directorio imgs = (Directorio) directorioActual.buscarHijo("imagenes");
+        if (imgs != null) {
+            sistemaArchivos.crearArchivo("foto1.jpg", 4, imgs);
+            sistemaArchivos.crearArchivo("logo.png", 3, imgs);
+        }
+
+        agregarLog("Precarga completada. Sistema listo.");
     }
     
     // Método para crear archivo desde la GUI
     public void crearArchivoDesdeGUI(String nombre, int tamanoEnBloques) {
+        crearArchivoDesdeGUI(nombre, tamanoEnBloques, "admin");
+    }
+
+    // Método para crear archivo desde la GUI con propietario
+    public void crearArchivoDesdeGUI(String nombre, int tamanoEnBloques, String propietario) {
         int bloqueObjetivo = (int)(Math.random() * disco.getTamanoTotal());
-        SolicitudIO solicitud = new SolicitudIO(TipoOperacion.CREAR_ARCHIVO, nombre, tamanoEnBloques, bloqueObjetivo);
+        SolicitudIO solicitud = new SolicitudIO(TipoOperacion.CREAR_ARCHIVO, nombre, tamanoEnBloques, bloqueObjetivo, propietario);
         PCB proceso = new PCB(++contadorProcesos, "Proceso-" + contadorProcesos, reloj.getCicloActual(), solicitud);
         recibirSolicitud(proceso);
     }
@@ -111,14 +147,47 @@ public class SO implements Runnable {
         recibirSolicitud(proceso);
     }
     
-    // Método para leer archivo desde la GUI
+    // Método para leer archivo directamente (recibe el objeto Archivo)
+    public void leerArchivoDirecto(Archivo archivo) {
+        System.out.println("DEBUG: Leyendo archivo directo: " + archivo.getNombre());
+
+        int bloqueObjetivo = archivo.getDireccionPrimerBloque();
+
+        System.out.println("DEBUG: Primer bloque: " + bloqueObjetivo);
+        System.out.println("DEBUG: Tamaño del archivo: " + archivo.getTamanoEnBloques() + " bloques");
+
+        if (bloqueObjetivo < 0) {
+            System.err.println("ERROR: Bloque inválido para archivo '" + archivo.getNombre() + "': " + bloqueObjetivo);
+            agregarLog("ERROR: Archivo '" + archivo.getNombre() + "' tiene bloque inválido: " + bloqueObjetivo);
+            return;
+        }
+
+        SolicitudIO solicitud = new SolicitudIO(TipoOperacion.LEER_ARCHIVO, archivo.getNombre(), bloqueObjetivo);
+        PCB proceso = new PCB(++contadorProcesos, "Proceso-" + contadorProcesos, reloj.getCicloActual(), solicitud);
+        recibirSolicitud(proceso);
+
+        System.out.println("DEBUG: Proceso creado: " + proceso.getNombre());
+    }
+
+    // Método para leer archivo desde la GUI (por nombre en directorio actual)
     public void leerArchivoDesdeGUI(String nombre) {
+        System.out.println("DEBUG: Intentando leer archivo: " + nombre);
+        System.out.println("DEBUG: Directorio actual: " + directorioActual.getNombre());
+
         Object hijo = directorioActual.buscarHijo(nombre);
+
+        if (hijo == null) {
+            System.err.println("ERROR: Archivo '" + nombre + "' no encontrado en directorio '" + directorioActual.getNombre() + "'");
+            agregarLog("ERROR: Archivo '" + nombre + "' no encontrado");
+            return;
+        }
+
         if (hijo instanceof Archivo) {
-            int bloqueObjetivo = ((Archivo) hijo).getDireccionPrimerBloque();
-            SolicitudIO solicitud = new SolicitudIO(TipoOperacion.LEER_ARCHIVO, nombre, bloqueObjetivo);
-            PCB proceso = new PCB(++contadorProcesos, "Proceso-" + contadorProcesos, reloj.getCicloActual(), solicitud);
-            recibirSolicitud(proceso);
+            Archivo arch = (Archivo) hijo;
+            leerArchivoDirecto(arch);
+        } else {
+            System.err.println("ERROR: '" + nombre + "' no es un archivo");
+            agregarLog("ERROR: '" + nombre + "' no es un archivo");
         }
     }
 
@@ -126,6 +195,7 @@ public class SO implements Runnable {
         nuevoProceso.setEstado(EstadoProceso.LISTO);
         colaListos.encolar(nuevoProceso);
         agregarLog("Proceso recibido: " + nuevoProceso.getNombre());
+        System.out.println("DEBUG: Proceso encolado en LISTOS - Total en cola: " + colaListos.obtenerTamanio());
     }
 
     public void cambiarPlanificador(Planificador nuevoPlanificador) {
@@ -147,29 +217,44 @@ public class SO implements Runnable {
 
                 reloj.esperarCiclo();
                 reloj.incrementarCiclo();
-                
+
+                // Bandera para evitar procesar I/O recién generada en el mismo ciclo
+                boolean ioGeneradaEsteCiclo = false;
+
 
                 if (!cpu.estaOcupada() && !colaListos.estaVacia()) {
                     PCB proceso = colaListos.desencolar();
                     cpu.asignarProceso(proceso);
-                    agregarLog("CPU asignada a: " + proceso.getNombre());
+                    proceso.registrarInicioEjecucion(reloj.getCicloActual());
+                    agregarLog("CPU asignada a: " + proceso.getNombre() + " (necesita " + proceso.getCiclosRestantesCPU() + " ciclos)");
+                    // NO ejecutar en el mismo ciclo que se asigna - esperar al siguiente ciclo
                 }
-                
+                else if (cpu.estaOcupada()) {
+                    // Solo ejecutar si ya estaba en CPU (no recién asignado)
+                    PCB proceso = cpu.getProcesoActual();
 
-                if (cpu.estaOcupada()) {
-                    PCB proceso = cpu.liberarProceso(); 
-                    SolicitudIO solicitud = proceso.getSolicitudIO();
-                    
+                    // Ejecutar un ciclo
+                    proceso.decrementarCiclosCPU();
+                    agregarLog("Ejecutando: " + proceso.getNombre() + " (ciclos restantes: " + proceso.getCiclosRestantesCPU() + ")");
 
-                    colaSolicitudesIO.encolar(solicitud);
+                    // Si completó su tiempo de CPU, generar solicitud I/O
+                    if (proceso.haCompletadoCPU()) {
+                        cpu.liberarProceso();
+                        SolicitudIO solicitud = proceso.getSolicitudIO();
 
-                    proceso.setEstado(EstadoProceso.BLOQUEADO);
-                    colaBloqueados.encolar(proceso);
-                    
-                    agregarLog("Solicitud generada: " + solicitud.toString());
+
+                        colaSolicitudesIO.encolar(solicitud);
+
+                        proceso.setEstado(EstadoProceso.BLOQUEADO);
+                        colaBloqueados.encolar(proceso);
+
+                        agregarLog("Solicitud I/O generada: " + solicitud.toString() + " - Proceso BLOQUEADO");
+                        ioGeneradaEsteCiclo = true; // Marcar que se generó I/O este ciclo
+                    }
                 }
-                
-                if (!colaSolicitudesIO.estaVacia()) {
+
+                // Solo procesar I/O si NO se generó en este ciclo
+                if (!colaSolicitudesIO.estaVacia() && !ioGeneradaEsteCiclo) {
 
                     SolicitudIO siguienteSolicitud = planificadorDisco.seleccionarSiguiente(
                         colaSolicitudesIO, 
@@ -211,10 +296,11 @@ public class SO implements Runnable {
         switch (tipo) {
             case CREAR_ARCHIVO:
                 int tamano = solicitud.getTamanoEnBloques();
-                Archivo archivo = sistemaArchivos.crearArchivo(nombreArchivo, tamano, padre); 
+                String propietario = solicitud.getPropietario();
+                Archivo archivo = sistemaArchivos.crearArchivo(nombreArchivo, tamano, padre, propietario);
                 exito = (archivo != null);
-                logMsg = String.format("Disco: Creó archivo '%s' (%d bloques) en %s",
-                                       nombreArchivo, tamano, padre.getNombre());
+                logMsg = String.format("Disco: Creó archivo '%s' (%d bloques) propietario: %s en %s",
+                                       nombreArchivo, tamano, propietario, padre.getNombre());
                 break;
 
             case CREAR_DIRECTORIO:
@@ -240,12 +326,33 @@ public class SO implements Runnable {
                 break;
 
             case LEER_ARCHIVO:
-                
+                System.out.println("DEBUG: Ejecutando lectura - Archivo: " + nombreArchivo + ", Bloque: " + solicitud.getBloqueObjetivo());
+
+                // Validar bloque antes de leer
+                if (solicitud.getBloqueObjetivo() < 0 || solicitud.getBloqueObjetivo() >= disco.getTamanoTotal()) {
+                    System.err.println("ERROR: Bloque fuera de rango al leer '" + nombreArchivo + "': " + solicitud.getBloqueObjetivo());
+                    exito = false;
+                    logMsg = String.format("Disco: FALLÓ lectura de '%s' - Bloque inválido: %d", nombreArchivo, solicitud.getBloqueObjetivo());
+                    break;
+                }
+
+                int hitsAntes = cacheDisco.getCacheHits();
                 Bloque bloqueLeido = cacheDisco.leerBloque(solicitud.getBloqueObjetivo());
 
-                exito = true; 
-                logMsg = String.format("Disco: Leyó bloque %d (Archivo: %s)",
-                                       solicitud.getBloqueObjetivo(), nombreArchivo);
+                if (bloqueLeido == null) {
+                    System.err.println("ERROR: No se pudo leer bloque " + solicitud.getBloqueObjetivo());
+                    exito = false;
+                    logMsg = String.format("Disco: FALLÓ lectura de '%s' - Bloque: %d", nombreArchivo, solicitud.getBloqueObjetivo());
+                    break;
+                }
+
+                int hitsDespues = cacheDisco.getCacheHits();
+                boolean fueHit = (hitsDespues > hitsAntes);
+                exito = true;
+                logMsg = String.format("Disco: Leyó bloque %d (Archivo: %s) - %s [Tasa: %.1f%%]",
+                                       solicitud.getBloqueObjetivo(), nombreArchivo,
+                                       fueHit ? "CACHE HIT" : "CACHE MISS",
+                                       cacheDisco.getTasaAciertos());
                 break;
 
             default:
@@ -368,6 +475,15 @@ public class SO implements Runnable {
     public boolean isEjecutando() { return ejecutando; }
     
     public void pausar() { reloj.pausar(); }
-    
+
     public void reanudar() { reloj.reanudar(); }
+
+    public void cambiarVelocidad(int duracionCicloMs) {
+        reloj.setDuracionCicloMs(duracionCicloMs);
+        agregarLog("Velocidad de simulación cambiada: " + duracionCicloMs + " ms/ciclo");
+    }
+
+    public int getVelocidadActual() {
+        return reloj.getDuracionCicloMs();
+    }
 }

@@ -1,0 +1,389 @@
+{
+  "descripcion": "Configuración específica para comparar claramente los 4 planificadores de disco",
+  "objetivo": "Archivos distribuidos estratégicamente para mostrar diferencias entre FIFO, SSTF, SCAN y C-SCAN",
+  "raiz": {
+    "nombre": "raiz",
+    "tipo": "directorio",
+    "hijos": [
+      {
+        "nombre": "inicio.txt",
+        "tipo": "archivo",
+        "tamano": 2,
+        "primerBloque": 0,
+        "propietario": "admin",
+        "colorR": 100,
+        "colorG": 149,
+        "colorB": 237
+      },
+      {
+        "nombre": "zona_baja",
+        "tipo": "directorio",
+        "hijos": [
+          {
+            "nombre": "archivo_10.dat",
+            "tipo": "archivo",
+            "tamano": 1,
+            "primerBloque": 0,
+            "propietario": "admin",
+            "colorR": 255,
+            "colorG": 99,
+            "colorB": 71
+          },
+          {
+            "nombre": "archivo_20.dat",
+            "tipo": "archivo",
+            "tamano": 1,
+            "primerBloque": 0,
+            "propietario": "admin",
+            "colorR": 144,
+            "colorG": 238,
+            "colorB": 144
+          },
+          {
+            "nombre": "archivo_30.dat",
+            "tipo": "archivo",
+            "tamano": 1,
+            "primerBloque": 0,
+            "propietario": "admin",
+            "colorR": 255,
+            "colorG": 215,
+            "colorB": 0
+          }
+        ]
+      },
+      {
+        "nombre": "zona_media",
+        "tipo": "directorio",
+        "hijos": [
+          {
+            "nombre": "archivo_40.dat",
+            "tipo": "archivo",
+            "tamano": 1,
+            "primerBloque": 0,
+            "propietario": "admin",
+            "colorR": 135,
+            "colorG": 206,
+            "colorB": 250
+          },
+          {
+            "nombre": "archivo_50.dat",
+            "tipo": "archivo",
+            "tamano": 1,
+            "primerBloque": 0,
+            "propietario": "admin",
+            "colorR": 255,
+            "colorG": 182,
+            "colorB": 193
+          },
+          {
+            "nombre": "archivo_60.dat",
+            "tipo": "archivo",
+            "tamano": 1,
+            "primerBloque": 0,
+            "propietario": "admin",
+            "colorR": 221,
+            "colorG": 160,
+            "colorB": 221
+          }
+        ]
+      },
+      {
+        "nombre": "zona_alta",
+        "tipo": "directorio",
+        "hijos": [
+          {
+            "nombre": "archivo_70.dat",
+            "tipo": "archivo",
+            "tamano": 1,
+            "primerBloque": 0,
+            "propietario": "admin",
+            "colorR": 255,
+            "colorG": 140,
+            "colorB": 0
+          },
+          {
+            "nombre": "archivo_80.dat",
+            "tipo": "archivo",
+            "tamano": 1,
+            "primerBloque": 0,
+            "propietario": "admin",
+            "colorR": 64,
+            "colorG": 224,
+            "colorB": 208
+          },
+          {
+            "nombre": "archivo_90.dat",
+            "tipo": "archivo",
+            "tamano": 1,
+            "primerBloque": 0,
+            "propietario": "admin",
+            "colorR": 255,
+            "colorG": 105,
+            "colorB": 180
+          }
+        ]
+      },
+      {
+        "nombre": "grandes",
+        "tipo": "directorio",
+        "hijos": [
+          {
+            "nombre": "documento_grande.pdf",
+            "tipo": "archivo",
+            "tamano": 8,
+            "primerBloque": 0,
+            "propietario": "admin",
+            "colorR": 178,
+            "colorG": 34,
+            "colorB": 34
+          },
+          {
+            "nombre": "video_demo.mp4",
+            "tipo": "archivo",
+            "tamano": 12,
+            "primerBloque": 0,
+            "propietario": "admin",
+            "colorR": 138,
+            "colorG": 43,
+            "colorB": 226
+          },
+          {
+            "nombre": "base_datos.db",
+            "tipo": "archivo",
+            "tamano": 10,
+            "primerBloque": 0,
+            "propietario": "admin",
+            "colorR": 34,
+            "colorG": 139,
+            "colorB": 34
+          }
+        ]
+      }
+    ]
+  },
+  "resumen": {
+    "totalArchivos": 13,
+    "totalDirectorios": 5,
+    "bloquesTotales": 40,
+    "distribucion": {
+      "archivos_pequenos": "9 archivos de 1 bloque cada uno = 9 bloques",
+      "documento_grande": "8 bloques (asignación encadenada)",
+      "base_datos": "10 bloques (asignación encadenada)",
+      "video_demo": "12 bloques (asignación encadenada MÁS GRANDE)",
+      "inicio": "2 bloques"
+    }
+  },
+  "estrategiaComparacion": {
+    "descripcion": "Los archivos están nombrados según el bloque aproximado donde deberían estar",
+    "nota": "archivo_10.dat debería estar cerca del bloque 10, archivo_90.dat cerca del 90, etc.",
+    "advertencia": "Los bloques reales se asignan dinámicamente, pero la distribución demostrará las diferencias entre planificadores"
+  },
+  "secuenciaPrueba": {
+    "titulo": "Secuencia de 6 lecturas para comparar planificadores",
+    "instrucciones": "Ejecutar estas 6 lecturas EN ORDEN con cada planificador",
+    "cabezaInicial": "0 (inicio del disco)",
+    "operaciones": [
+      {
+        "orden": 1,
+        "accion": "LEER archivo_90.dat",
+        "razon": "Bloque MUY LEJANO desde posición inicial"
+      },
+      {
+        "orden": 2,
+        "accion": "LEER archivo_10.dat",
+        "razon": "Bloque CERCANO al inicio (salto grande desde 90)"
+      },
+      {
+        "orden": 3,
+        "accion": "LEER archivo_60.dat",
+        "razon": "Bloque en zona MEDIA"
+      },
+      {
+        "orden": 4,
+        "accion": "LEER archivo_30.dat",
+        "razon": "Bloque en zona BAJA (entre 10 y 60)"
+      },
+      {
+        "orden": 5,
+        "accion": "LEER archivo_80.dat",
+        "razon": "Bloque en zona ALTA nuevamente"
+      },
+      {
+        "orden": 6,
+        "accion": "LEER archivo_50.dat",
+        "razon": "Bloque en zona MEDIA (entre 30 y 80)"
+      }
+    ]
+  },
+  "resultadosEsperados": {
+    "FIFO": {
+      "descripcion": "Atiende en orden de llegada (First In First Out)",
+      "ordenEjecucion": "90 → 10 → 60 → 30 → 80 → 50",
+      "caracteristicas": "Mucho movimiento de ida y vuelta (caótico)",
+      "distanciaAproximada": "~280 bloques",
+      "ventaja": "Justo, sin inanición",
+      "desventaja": "MUY INEFICIENTE en movimiento del cabezal",
+      "colorIndicador": "Rojo - ver rectángulo rojo saltando"
+    },
+    "SSTF": {
+      "descripcion": "Atiende el bloque más cercano primero (Shortest Seek Time First)",
+      "ordenEjecucion": "10 → 30 → 50 → 60 → 80 → 90",
+      "caracteristicas": "Movimiento ordenado y ascendente",
+      "distanciaAproximada": "~90 bloques",
+      "mejora": "68% menos movimiento que FIFO",
+      "ventaja": "ÓPTIMO para minimizar movimiento",
+      "desventaja": "archivo_90.dat esperó mucho (posible inanición)",
+      "colorIndicador": "Rojo - ver movimiento suave y continuo"
+    },
+    "SCAN": {
+      "descripcion": "Barrido unidireccional como un ascensor",
+      "ordenEjecucion": "10 → 30 → 50 → 60 → 80 → 90",
+      "caracteristicas": "Barrido ascendente (dirección inicial)",
+      "distanciaAproximada": "~90 bloques",
+      "mejora": "68% menos movimiento que FIFO",
+      "ventaja": "Sin inanición, predecible",
+      "desventaja": "Similar a SSTF en este caso",
+      "colorIndicador": "Rojo - barrido continuo en una dirección"
+    },
+    "C-SCAN": {
+      "descripcion": "Barrido circular - siempre en la misma dirección",
+      "ordenEjecucion": "10 → 30 → 50 → 60 → 80 → 90",
+      "caracteristicas": "Barrido ascendente, al llegar al final vuelve al inicio",
+      "distanciaAproximada": "~90 bloques",
+      "mejora": "68% menos movimiento que FIFO",
+      "ventaja": "Tiempo de espera MÁS UNIFORME",
+      "desventaja": "Overhead del salto circular (no visible en este caso)",
+      "colorIndicador": "Rojo - barrido continuo, retorno rápido al inicio"
+    }
+  },
+  "guiaPasoAPaso": {
+    "preparacion": {
+      "paso1": "Cargar este JSON en el sistema",
+      "paso2": "Configurar velocidad: x1 (500ms) o x0.5 (1000ms)",
+      "paso3": "Asegurar que el disco tenga al menos 100 bloques",
+      "paso4": "Observar pestaña 'Disco' para ver movimiento del cabezal"
+    },
+    "prueba_FIFO": {
+      "paso1": "Seleccionar planificador FIFO en el ComboBox",
+      "paso2": "Limpiar log de eventos (si es posible)",
+      "paso3": "Ejecutar las 6 lecturas en orden (ver secuenciaPrueba)",
+      "paso4": "Observar el cabezal (rectángulo rojo) saltando caóticamente",
+      "paso5": "Registrar en el log la distancia total (~280 bloques)",
+      "observar": "Movimiento: 0→90→10→60→30→80→50 (mucho ida y vuelta)"
+    },
+    "prueba_SSTF": {
+      "paso1": "REINICIAR la simulación o limpiar estado",
+      "paso2": "Cambiar planificador a SSTF",
+      "paso3": "Ejecutar las MISMAS 6 lecturas",
+      "paso4": "Observar el cabezal moviéndose ordenadamente: 0→10→30→50→60→80→90",
+      "paso5": "Registrar distancia total (~90 bloques)",
+      "comparar": "MEJORA del 68% respecto a FIFO ✓",
+      "observar": "archivo_90.dat se atiende al FINAL (último en la cola reorganizada)"
+    },
+    "prueba_SCAN": {
+      "paso1": "REINICIAR la simulación",
+      "paso2": "Cambiar planificador a SCAN",
+      "paso3": "Ejecutar las MISMAS 6 lecturas",
+      "paso4": "Observar barrido ascendente continuo",
+      "paso5": "Registrar distancia (~90 bloques)",
+      "comparar": "Similar a SSTF pero SIN inanición garantizada",
+      "observar": "Todas las solicitudes se atienden en orden ascendente"
+    },
+    "prueba_C-SCAN": {
+      "paso1": "REINICIAR la simulación",
+      "paso2": "Cambiar planificador a C-SCAN",
+      "paso3": "Ejecutar las MISMAS 6 lecturas",
+      "paso4": "Observar barrido circular",
+      "paso5": "Registrar distancia (~90 bloques)",
+      "comparar": "Tiempo de espera MÁS UNIFORME que SCAN",
+      "observar": "Al llegar al final, el cabezal vuelve rápido al inicio"
+    }
+  },
+  "demostracionAsignacionEncadenada": {
+    "archivo": "video_demo.mp4",
+    "bloques": 12,
+    "pasos": [
+      "1. Ir a pestaña 'Tabla de Asignación'",
+      "2. Buscar 'video_demo.mp4' en la tabla",
+      "3. Observar columna 'Siguiente Bloque'",
+      "4. Ejemplo de cadena: Bloque 25 → 34 → 41 → 48 → 55 → 62 → 69 → 76 → 83 → 90 → 97 → -1",
+      "5. Contar 12 bloques enlazados (el más grande en esta demo)"
+    ]
+  },
+  "demostracionBufferCache": {
+    "secuencia": [
+      "1. Ir a pestaña 'Cache'",
+      "2. Leer archivo_10.dat → CACHE MISS",
+      "3. Leer archivo_20.dat → CACHE MISS",
+      "4. Leer archivo_10.dat → CACHE HIT ✓",
+      "5. Leer archivo_30.dat → CACHE MISS",
+      "6. Leer archivo_20.dat → CACHE HIT ✓",
+      "7. Observar tasa de aciertos: 40% (2 hits de 5 accesos)"
+    ],
+    "metricas": {
+      "hits": 2,
+      "misses": 3,
+      "total": 5,
+      "tasa": "40%"
+    }
+  },
+  "tablaSumario": {
+    "encabezados": ["Planificador", "Orden Ejecución", "Distancia", "Mejora vs FIFO", "Característica"],
+    "datos": [
+      {
+        "planificador": "FIFO",
+        "orden": "90→10→60→30→80→50",
+        "distancia": "~280 bloques",
+        "mejora": "0% (base)",
+        "caracteristica": "Caótico, ineficiente"
+      },
+      {
+        "planificador": "SSTF",
+        "orden": "10→30→50→60→80→90",
+        "distancia": "~90 bloques",
+        "mejora": "-68%",
+        "caracteristica": "Óptimo local"
+      },
+      {
+        "planificador": "SCAN",
+        "orden": "10→30→50→60→80→90",
+        "distancia": "~90 bloques",
+        "mejora": "-68%",
+        "caracteristica": "Sin inanición"
+      },
+      {
+        "planificador": "C-SCAN",
+        "orden": "10→30→50→60→80→90",
+        "distancia": "~90 bloques",
+        "mejora": "-68%",
+        "caracteristica": "Espera uniforme"
+      }
+    ]
+  },
+  "metricasEsperadas": {
+    "disco": {
+      "bloquesOcupados": 40,
+      "porcentajeUso": "40% (si disco = 100 bloques)",
+      "fragmentacion": "Baja (asignación encadenada)"
+    },
+    "procesos": {
+      "ciclosEnCPU": "2-4 ciclos antes de I/O",
+      "ciclosEnBloqueado": "1-3 ciclos según planificador",
+      "estadosObservables": "LISTO → EJECUTANDO → BLOQUEADO → TERMINADO"
+    },
+    "cache": {
+      "tamañoRecomendado": 10,
+      "tasaConRelecturas": "40-50%",
+      "politica": "FIFO"
+    }
+  },
+  "notas": [
+    "✓ 13 archivos + 5 directorios = 18 elementos",
+    "✓ 40 bloques totales (40% de un disco de 100 bloques)",
+    "✓ Archivos pequeños (1 bloque) para comparación clara de planificadores",
+    "✓ 3 archivos grandes (8, 10, 12 bloques) para demostrar asignación encadenada",
+    "✓ Colores distintos para visualización clara en el disco",
+    "✓ Todos los archivos con propietario 'admin'",
+    "✓ Modo Usuario puede leer TODOS los archivos"
+  ]
+}

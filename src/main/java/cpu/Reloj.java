@@ -47,4 +47,14 @@ public class Reloj {
             Thread.currentThread().interrupt();
         }
     }
+
+    public int getDuracionCicloMs() {
+        return duracionCicloMs;
+    }
+
+    public void setDuracionCicloMs(int duracionCicloMs) {
+        if (duracionCicloMs > 0) {
+            this.duracionCicloMs = duracionCicloMs;
+        }
+    }
 }
