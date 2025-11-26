@@ -422,7 +422,34 @@ public class Ventana_Principal extends javax.swing.JFrame {
             TreePath path = arbolArchivos.getSelectionPath();
             if (path != null) {
                 DefaultMutableTreeNode nodo = (DefaultMutableTreeNode) path.getLastPathComponent();
- 
+
+            }
+        });
+
+        // Agregar listener para doble click
+        arbolArchivos.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    TreePath path = arbolArchivos.getPathForLocation(e.getX(), e.getY());
+                    if (path != null) {
+                        DefaultMutableTreeNode nodo = (DefaultMutableTreeNode) path.getLastPathComponent();
+                        Object obj = nodo.getUserObject();
+
+                        if (obj instanceof Archivo) {
+                            Archivo arch = (Archivo) obj;
+                            // Tanto administrador como usuario pueden leer archivos
+                            simulador.leerArchivoDirecto(arch);
+                        } else if (obj instanceof Directorio) {
+                            // Doble click en directorio: expandir/colapsar
+                            if (arbolArchivos.isExpanded(path)) {
+                                arbolArchivos.collapsePath(path);
+                            } else {
+                                arbolArchivos.expandPath(path);
+                            }
+                        }
+                    }
+                }
             }
         });
         
